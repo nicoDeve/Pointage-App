@@ -36,8 +36,10 @@ export function SupportMonthAccordion({
 
   useEffect(() => {
     if (currentMonthRef.current && !hasScrolledRef.current) {
-      currentMonthRef.current.scrollIntoView({ block: 'start', behavior: 'smooth' })
       hasScrolledRef.current = true
+      requestAnimationFrame(() => {
+        currentMonthRef.current?.scrollIntoView({ block: 'start', behavior: 'smooth' })
+      })
     }
   }, [expandedMonthId])
 
