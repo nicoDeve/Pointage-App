@@ -10,17 +10,10 @@ import {
 
 export type DetailTab = 'weekly' | 'profile'
 
-export interface WeekDay {
-  date: Date
-  inMonth: boolean
-}
-
 export interface WeekSlice {
   isoWeek: number
   isoWeekYear: number
   workdaysInMonth: Date[]
-  /** All workdays of the full ISO week, with inMonth flag */
-  fullWeekDays: WeekDay[]
 }
 
 export interface MonthData {
@@ -64,12 +57,11 @@ export function buildWeekSlices(month: Date): WeekSlice[] {
     .sort((a, b) => a.wy !== b.wy ? a.wy - b.wy : a.wn - b.wn)
     .map(({ wy, wn }) => {
       const allDays = getIsoWeekWorkdays(wy, wn)
-      const fullWeekDays: WeekDay[] = allDays.map((d) => {
+      const workdaysInMonth = allDays.filter((d) => {
         const dk = toDateKey(d)
-        return { date: d, inMonth: dk >= mStart && dk <= mEnd }
+        return dk >= mStart && dk <= mEnd
       })
-      const workdaysInMonth = fullWeekDays.filter((wd) => wd.inMonth).map((wd) => wd.date)
-      return { isoWeek: wn, isoWeekYear: wy, workdaysInMonth, fullWeekDays }
+      return { isoWeek: wn, isoWeekYear: wy, workdaysInMonth }
     })
 }
 

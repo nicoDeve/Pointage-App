@@ -18,9 +18,9 @@ import {
   ContextMenu, ContextMenuContent, ContextMenuItem,
   ContextMenuSeparator, ContextMenuTrigger,
 } from '~/components/ui/context-menu'
-import { buildWeekSlices, getUserHoursForDate, type WeekSlice, type WeekDay } from './support-types'
+import { buildWeekSlices, getUserHoursForDate, type WeekSlice } from './support-types'
 
-type StickState = 'full' | 'partial' | 'empty' | 'absent' | 'out_of_month'
+type StickState = 'full' | 'partial' | 'empty' | 'absent'
 
 /** Use the CSS utility classes from globals.css for consistent stick styling */
 const STICK_CLASS: Record<StickState, string> = {
@@ -28,7 +28,6 @@ const STICK_CLASS: Record<StickState, string> = {
   partial: 'stick-partial',
   empty: 'stick-empty',
   absent: 'stick-absent',
-  out_of_month: 'stick-empty opacity-30',
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -38,16 +37,10 @@ function getStickStates(
   slice: WeekSlice,
   entryMap: Map<string, TimeEntry[]>,
 ): { state: StickState; label: string }[] {
-  return slice.fullWeekDays.map((wd) => {
-    const key = toDateKey(wd.date)
+  return slice.workdaysInMonth.map((d) => {
+    const key = toDateKey(d)
     const h = getUserHoursForDate(userId, key, entryMap)
-    const dayLabel = format(wd.date, 'EEEE d MMM', { locale: fr })
-    if (!wd.inMonth) {
-      // Day belongs to another month — show dimmed stick with actual data
-      if (h >= HOURS_PER_WORKDAY) return { state: 'full' as const, label: `${dayLabel} — ${h}h (autre mois)` }
-      if (h > 0) return { state: 'partial' as const, label: `${dayLabel} — ${h}h (autre mois)` }
-      return { state: 'out_of_month' as const, label: `${dayLabel} — autre mois` }
-    }
+    const dayLabel = format(d, 'EEEE d MMM', { locale: fr })
     if (h >= HOURS_PER_WORKDAY) return { state: 'full' as const, label: `${dayLabel} — ${h}h` }
     if (h > 0) return { state: 'partial' as const, label: `${dayLabel} — ${h}h (partiel)` }
     return { state: 'empty' as const, label: `${dayLabel} — non saisi` }
@@ -147,7 +140,7 @@ export function MonthlyView({
                 <div className="flex flex-col items-center gap-0.5 leading-tight">
                   <span>S{slice.isoWeek}</span>
                   <span className="text-[10px] font-normal tabular-nums text-muted-foreground/80">
-                    {slice.fullWeekDays.length}j
+                    {slice.workdaysInMonth.length}j
                   </span>
                 </div>
               </th>

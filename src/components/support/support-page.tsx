@@ -1,9 +1,10 @@
 ﻿import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { format, startOfMonth, endOfMonth } from 'date-fns'
 import { fr } from 'date-fns/locale'
+import * as XLSX from 'xlsx'
 import {
   Users, Clock, CheckCircle2, AlertTriangle,
-  Search, Filter, X, FileSpreadsheet,
+  Search, Filter, X,
 } from 'lucide-react'
 import type { User, TimeEntry } from '@repo/shared'
 import { toDateKey, sumHours, parseDuration, monthTargetHours } from '@repo/shared'
@@ -22,6 +23,7 @@ import { ScrollArea } from '~/components/ui/scroll-area'
 import { SupportPeriodPicker } from './support-period-picker'
 import { SupportMonthAccordion } from './support-month-accordion'
 import { SupportDetailPanel } from './support-detail-panel'
+import { ExportMenu } from '~/components/shared/export-menu'
 import type { DetailTab, MonthData, UserStat } from './support-types'
 import { buildWeekSlices, buildMonthRange } from './support-types'
 
@@ -208,64 +210,88 @@ export function SupportPage({ user }: SupportPageProps) {
     notifySaved('Export généré', 'Le fichier CSV a été téléchargé.')
   }
 
-  const exportPennylane = () => {
-    const noPole = projects.filter((p) => selectedEntries.some((e) => e.projectId === p.id) && !p.pole)
+  const exportPennylane = (userSubset?: User[]) => {
+    const entries = userSubset
+      ? selectedEntries.filter((e) => userSubset.some((u) => u.id === e.userId))
+      : selectedEntries
+
+    const noPole = projects.filter((p) => entries.some((e) => e.projectId === p.id) && !p.pole)
     if (noPole.length > 0) {
       notifyError('Projets sans pôle analytique détectés', noPole.map((p) => p.name).join(', '))
+      return
     }
 
     const byUser = new Map<string, TimeEntry[]>()
-    for (const e of selectedEntries) {
+    for (const e of entries) {
       const arr = byUser.get(e.userId) ?? []
       arr.push(e)
       byUser.set(e.userId, arr)
     }
 
-    const sep = ';'
-    const header = [
+    const dateStr = format(endOfMonth(selectedMonth), 'yyyy-MM-dd')
+    const moisLabel = format(selectedMonth, 'MMMM', { locale: fr })
+    const annee = format(selectedMonth, 'yyyy')
+
+    const headers = [
       'Date', 'Code Journal', 'Numéro de compte', 'Libellé de compte',
       'Libellé de ligne', 'Taux de TVA du compte', 'Code pays du compte',
       'Libellé de pièce', 'Numéro de pièce', 'Débit et/ou Crédit', 'Crédit',
       'Famille de catégories', 'Catégorie', 'Identifiant de ligne',
       'Identifiant de lettrage',
-    ].join(sep)
+    ]
 
-    const rows: string[] = [header]
-    const dateStr = format(endOfMonth(selectedMonth), 'dd/MM/yyyy')
+    const rows: (string | number)[][] = []
 
     for (const [userId, userEntries] of byUser) {
       const usr = users.find((u) => u.id === userId)
+      const name = getUserName(usr)
       const total = sumHours(userEntries)
-      rows.push(
-        [dateStr, 'OD', '', getUserName(usr), `Saisie ${selectedMonthLabel}`, '', 'FR', `Pointage ${selectedMonthLabel}`, '', '0', total.toFixed(2), '', '', '', ''].join(sep),
-      )
+      const piece = `Saisies heures ${name} ${moisLabel} ${annee}`
+
+      // Credit line — total hours
+      rows.push([
+        dateStr, 'ODA', '641 000 000', 'Rémunération',
+        `Saisies heures ${name} ${moisLabel} ${annee}`,
+        '', '', piece, 1, 0, total, '', '', '', '',
+      ])
+
+      // Debit lines — hours per pôle
       const byPole = new Map<string, number>()
       for (const e of userEntries) {
         const pole = projectMap.get(e.projectId)?.pole
         if (!pole) continue
         byPole.set(pole, (byPole.get(pole) ?? 0) + parseDuration(e.duration))
       }
+
+      let isFirst = true
       for (const [pole, hours] of byPole) {
-        rows.push(
-          [dateStr, 'OD', '', getUserName(usr), `${pole} ${selectedMonthLabel}`, '', 'FR', `Pointage ${selectedMonthLabel}`, '', hours.toFixed(2), '0', 'Pôles', pole, '', ''].join(sep),
-        )
+        rows.push([
+          dateStr, 'ODA', '641 000 000', 'Rémunération',
+          `${pole} Saisies heures ${name} ${moisLabel} ${annee}`,
+          '', '', piece, 1, hours, 0,
+          'Pôles', pole, isFirst ? 1 : '', '',
+        ])
+        isFirst = false
       }
     }
 
-    const bom = '\uFEFF'
-    const blob = new Blob([bom + rows.join('\n')], { type: 'text/csv;charset=utf-8' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `pennylane_saisies_${format(selectedMonth, 'MM_yyyy')}.csv`
-    a.click()
-    URL.revokeObjectURL(url)
-    notifySaved('Export Pennylane généré', 'Le fichier CSV comptable a été téléchargé.')
+    // Build XLSX workbook
+    const suffix = userSubset?.length === 1 ? `_${getUserName(userSubset[0]).replace(/\s+/g, '_')}` : ''
+    const ws = XLSX.utils.aoa_to_sheet([headers, ...rows])
+    const wb = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(wb, ws, 'Pennylane')
+    XLSX.writeFile(wb, `pennylane_saisies${suffix}_${format(selectedMonth, 'MM_yyyy')}.xlsx`)
+    notifySaved('Export Pennylane généré', 'Le fichier XLSX comptable a été téléchargé.')
   }
 
   const exportUserCsv = (userId: string) => {
     const usr = users.find((u) => u.id === userId)
     if (usr) exportCsv([usr])
+  }
+
+  const exportUserPennylane = (userId: string) => {
+    const usr = users.find((u) => u.id === userId)
+    if (usr) exportPennylane([usr])
   }
 
   // ─── Render ───────────────────────────────────────────────────────
@@ -312,11 +338,7 @@ export function SupportPage({ user }: SupportPageProps) {
                 open={isPeriodOpen}
                 onOpenChange={setIsPeriodOpen}
               />
-              <Button variant="outline" size="sm" className="h-8 shrink-0 gap-2 sm:h-9" onClick={() => exportCsv()}>
-                <FileSpreadsheet className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                <span className="hidden sm:inline">Export CSV</span>
-                <span className="sm:hidden">CSV</span>
-              </Button>
+              <ExportMenu onExportCsv={() => exportCsv()} onExportPennylane={() => exportPennylane()} />
             </div>
             <TabsList className="inline-flex h-8 w-fit shrink-0 rounded-md bg-muted/50 p-0.5 sm:h-9">
               <TabsTrigger value="monthly" className="rounded-sm px-3 text-xs data-[state=active]:bg-background data-[state=active]:shadow-sm sm:text-sm">
@@ -339,7 +361,6 @@ export function SupportPage({ user }: SupportPageProps) {
               expandedMonthId={expandedMonthId}
               onToggleMonth={(id) => setExpandedMonthId((prev) => prev === id ? null : id)}
               onSelectUser={handleOpenDetail}
-              onExportCsv={exportCsv}
               onExportUserCsv={exportUserCsv}
             />
           </ScrollArea>
@@ -430,6 +451,7 @@ export function SupportPage({ user }: SupportPageProps) {
         projectMap={projectMap}
         selectedMonthLabel={detailMonthLabel}
         onExportUserCsv={exportUserCsv}
+        onExportUserPennylane={exportUserPennylane}
       />
     </div>
   )

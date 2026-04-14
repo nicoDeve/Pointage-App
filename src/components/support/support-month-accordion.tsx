@@ -1,11 +1,10 @@
 import { format, startOfMonth } from 'date-fns'
 import { useEffect, useRef } from 'react'
 import { fr } from 'date-fns/locale'
-import { ChevronUp, ChevronDown, FileSpreadsheet } from 'lucide-react'
+import { ChevronUp, ChevronDown } from 'lucide-react'
 import type { User, TimeEntry, Project } from '@repo/shared'
 import { cn } from '~/lib/utils'
 import { PeriodStatusBadge, CompletionStatusBadge } from '~/components/shared/app-badges'
-import { Button } from '~/components/ui/button'
 import { MonthlyView } from '~/components/support/monthly-view'
 import type { MonthData, DetailTab } from './support-types'
 import { getMonthStats } from './support-types'
@@ -18,7 +17,6 @@ interface SupportMonthAccordionProps {
   expandedMonthId: string | null
   onToggleMonth: (monthId: string) => void
   onSelectUser: (userId: string, tab: DetailTab, month: Date) => void
-  onExportCsv: (users?: User[], month?: Date) => void
   onExportUserCsv: (userId: string) => void
 }
 
@@ -30,7 +28,6 @@ export function SupportMonthAccordion({
   expandedMonthId,
   onToggleMonth,
   onSelectUser,
-  onExportCsv,
   onExportUserCsv,
 }: SupportMonthAccordionProps) {
   const currentMonthId = format(startOfMonth(new Date()), 'yyyy-MM')
@@ -93,17 +90,6 @@ export function SupportMonthAccordion({
                     className={cn('h-full rounded-full', allComplete ? 'bg-green-500' : 'bg-blue-500')}
                     style={{ width: `${stats.total > 0 ? (stats.complete / stats.total) * 100 : 0}%` }}
                   />
-                </div>
-                <div onClick={(e) => e.stopPropagation()}>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="h-7 gap-1.5 px-2.5 text-xs"
-                    onClick={() => onExportCsv(undefined, md.month)}
-                  >
-                    <FileSpreadsheet className="h-3.5 w-3.5" />
-                    CSV
-                  </Button>
                 </div>
                 {isExpanded ? (
                   <ChevronUp className="h-4 w-4 text-muted-foreground" />

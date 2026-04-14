@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { format } from 'date-fns'
 import { fr } from 'date-fns/locale'
 import {
-  ChevronUp, ChevronDown, ChevronRight, Download, Users, Briefcase,
+  ChevronUp, ChevronDown, ChevronRight, Users, Briefcase,
 } from 'lucide-react'
 import type { User, TimeEntry, Project } from '@repo/shared'
 import { toDateKey, HOURS_PER_WORKDAY, isPublicHoliday, parseDuration } from '@repo/shared'
@@ -10,13 +10,13 @@ import { cn, getUserName, getUserInitials, dayHoursTextClass, formatHoursLabel }
 import { sidePanelTokens } from '~/lib/side-panel-tokens'
 import { AppSidePanel } from '~/components/shared/app-side-panel'
 import { CompletionStatusBadge, getCompletionStatus } from '~/components/shared/app-badges'
-import { Button } from '~/components/ui/button'
 import { Badge } from '~/components/ui/badge'
 import { Progress } from '~/components/ui/progress'
 import { Separator } from '~/components/ui/separator'
 import { Avatar, AvatarFallback } from '~/components/ui/avatar'
 import { Card, CardContent } from '~/components/ui/card'
 import { Tabs, TabsList, TabsTrigger } from '~/components/ui/tabs'
+import { ExportMenu } from '~/components/shared/export-menu'
 import type { DetailTab, WeekSlice, UserStat } from './support-types'
 import { getUserHoursForDate, PROJECT_COLORS } from './support-types'
 
@@ -30,6 +30,7 @@ interface SupportDetailPanelProps {
   projectMap: Map<string, Project>
   selectedMonthLabel: string
   onExportUserCsv: (userId: string) => void
+  onExportUserPennylane: (userId: string) => void
 }
 
 export function SupportDetailPanel({
@@ -42,6 +43,7 @@ export function SupportDetailPanel({
   projectMap,
   selectedMonthLabel,
   onExportUserCsv,
+  onExportUserPennylane,
 }: SupportDetailPanelProps) {
   const [detailTab, setDetailTab] = useState<DetailTab>('weekly')
   const [expandedWeeks, setExpandedWeeks] = useState<Set<number>>(new Set())
@@ -65,11 +67,11 @@ export function SupportDetailPanel({
 
   const weekData = userId
     ? weekSlices.map((slice) => {
-        const hours = slice.fullWeekDays.reduce(
-          (s, wd) => s + getUserHoursForDate(userId, toDateKey(wd.date), entryMap),
+        const hours = slice.workdaysInMonth.reduce(
+          (s, d) => s + getUserHoursForDate(userId, toDateKey(d), entryMap),
           0,
         )
-        const target = slice.fullWeekDays.length * HOURS_PER_WORKDAY
+        const target = slice.workdaysInMonth.length * HOURS_PER_WORKDAY
         return { slice, hours, target, isComplete: hours >= target }
       })
     : []
@@ -105,14 +107,12 @@ export function SupportDetailPanel({
               <TabsTrigger value="profile" className="px-2.5 text-xs">Profil</TabsTrigger>
             </TabsList>
           </Tabs>
-          <Button
-            variant="outline"
-            size="icon"
-            className="h-8 w-8 shrink-0"
-            onClick={() => userId && onExportUserCsv(userId)}
-          >
-            <Download className="h-3.5 w-3.5" />
-          </Button>
+          {userId && (
+            <ExportMenu
+              onExportCsv={() => onExportUserCsv(userId)}
+              onExportPennylane={() => onExportUserPennylane(userId)}
+            />
+          )}
         </div>
 
         {/* Weekly tab */}
@@ -173,8 +173,7 @@ export function SupportDetailPanel({
 
                         {isExpanded && (
                           <div className="divide-y divide-border/60 border-t border-border bg-muted/10">
-                            {slice.fullWeekDays.map((wd) => {
-                              const d = wd.date
+                            {slice.workdaysInMonth.map((d) => {
                               const dateKey = toDateKey(d)
                               const dayKey = `${slice.isoWeek}-${dateKey}`
                               const isDayOpen = expandedDays.has(dayKey)
