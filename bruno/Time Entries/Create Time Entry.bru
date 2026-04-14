@@ -1,0 +1,28 @@
+meta {
+  name: Create Time Entry
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/api/time-entries
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "projectId": "{{projectId}}",
+    "workDate": "2026-04-01",
+    "startTime": "09:00",
+    "duration": 7
+  }
+}
+
+docs {
+  Note: remplacer {{projectId}} par un UUID reel obtenu via GET /api/projects
+}

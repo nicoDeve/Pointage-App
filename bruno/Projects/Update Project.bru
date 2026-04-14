@@ -1,0 +1,26 @@
+meta {
+  name: Update Project
+  type: http
+  seq: 4
+}
+
+patch {
+  url: {{baseUrl}}/api/projects/{{projectId}}
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "name": "Projet Renomme",
+    "isActive": false
+  }
+}
+
+docs {
+  Note: remplacer {{projectId}} par un UUID reel obtenu via GET /api/projects
+}

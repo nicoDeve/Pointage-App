@@ -1,0 +1,15 @@
+meta {
+  name: Get Absence Request
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{baseUrl}}/api/absence-requests/{{absenceRequestId}}
+  body: none
+  auth: none
+}
+
+docs {
+  Note: remplacer {{absenceRequestId}} par un UUID reel obtenu via GET /api/absence-requests
+}

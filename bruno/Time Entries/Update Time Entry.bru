@@ -1,0 +1,26 @@
+meta {
+  name: Update Time Entry
+  type: http
+  seq: 3
+}
+
+patch {
+  url: {{baseUrl}}/api/time-entries/{{timeEntryId}}
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "duration": 8,
+    "startTime": "08:30"
+  }
+}
+
+docs {
+  Note: remplacer {{timeEntryId}} par un UUID reel obtenu via GET /api/time-entries
+}

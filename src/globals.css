@@ -1,0 +1,425 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+
+@custom-variant dark (&:is(.dark *));
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   FONTS — Geist variable (Vercel) via jsDelivr CDN
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+@font-face {
+  font-family: 'Geist';
+  src: url('https://cdn.jsdelivr.net/npm/geist@1/dist/fonts/geist-sans/Geist-Variable.woff2') format('woff2');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Geist Mono';
+  src: url('https://cdn.jsdelivr.net/npm/geist@1/dist/fonts/geist-mono/GeistMono-Variable.woff2') format('woff2');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   THEME — Design tokens OKLCH (shadcn neutral)
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+:root {
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+  --primary: oklch(0.205 0 0);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.97 0 0);
+  --secondary-foreground: oklch(0.205 0 0);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.556 0 0);
+  --accent: oklch(0.97 0 0);
+  --accent-foreground: oklch(0.205 0 0);
+  --destructive: oklch(0.577 0.245 27.325);
+  --destructive-foreground: oklch(0.577 0.245 27.325);
+  --border: oklch(0.922 0 0);
+  --input: oklch(0.922 0 0);
+  --ring: oklch(0.708 0 0);
+  --chart-1: oklch(0.646 0.222 41.116);
+  --chart-2: oklch(0.6 0.118 184.704);
+  --chart-3: oklch(0.398 0.07 227.392);
+  --chart-4: oklch(0.828 0.189 84.429);
+  --chart-5: oklch(0.769 0.188 70.08);
+  --radius: 0.625rem;
+  --sidebar: oklch(0.97 0 0);
+  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar-primary: oklch(0.205 0 0);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.92 0 0);
+  --sidebar-accent-foreground: oklch(0.145 0 0);
+  --sidebar-border: oklch(0.88 0 0);
+  --sidebar-ring: oklch(0.708 0 0);
+}
+
+.dark {
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.145 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.145 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.985 0 0);
+  --primary-foreground: oklch(0.205 0 0);
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.269 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.396 0.141 25.723);
+  --destructive-foreground: oklch(0.637 0.237 25.331);
+  --border: oklch(0.269 0 0);
+  --input: oklch(0.269 0 0);
+  --ring: oklch(0.439 0 0);
+  --chart-1: oklch(0.488 0.243 264.376);
+  --chart-2: oklch(0.696 0.17 162.48);
+  --chart-3: oklch(0.769 0.188 70.08);
+  --chart-4: oklch(0.627 0.265 303.9);
+  --chart-5: oklch(0.645 0.246 16.439);
+  --sidebar: oklch(0.205 0 0);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(0.269 0 0);
+  --sidebar-ring: oklch(0.439 0 0);
+}
+
+@theme inline {
+  --font-sans: 'Geist', 'Geist Fallback', system-ui, sans-serif;
+  --font-mono: 'Geist Mono', 'Geist Mono Fallback', monospace;
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   BASE — Reset & defaults
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   APP UTILITIES — Atomic Tailwind utility classes (no cross-referencing)
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+@utility app-page {
+  @apply flex flex-col gap-4 p-4 min-h-0 flex-1 overflow-y-auto;
+}
+
+@utility app-page-header {
+  @apply flex items-center justify-between gap-3;
+}
+
+@utility app-page-title {
+  @apply text-lg font-semibold text-foreground tracking-tight;
+}
+
+@utility app-section-title {
+  @apply text-xs font-semibold text-foreground uppercase tracking-wide;
+}
+
+@utility app-grid-2 {
+  @apply grid grid-cols-1 md:grid-cols-2 gap-3;
+}
+
+@utility app-grid-3 {
+  @apply grid grid-cols-1 md:grid-cols-3 gap-3;
+}
+
+@utility app-grid-4 {
+  @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3;
+}
+
+/* ── Typography ──────────────────────────────────────────────────────────── */
+
+@utility text-label {
+  @apply text-xs font-medium text-muted-foreground;
+}
+
+@utility text-value {
+  @apply text-2xl font-bold tabular-nums leading-none text-foreground;
+}
+
+@utility text-hint {
+  @apply text-[11px] leading-tight text-muted-foreground;
+}
+
+@utility text-body {
+  @apply text-sm text-foreground;
+}
+
+@utility text-body-muted {
+  @apply text-sm text-muted-foreground;
+}
+
+@utility text-mono {
+  @apply font-mono tabular-nums;
+}
+
+/* ── Cards ───────────────────────────────────────────────────────────────── */
+
+@utility app-card {
+  @apply rounded-lg border border-border bg-card text-card-foreground;
+}
+
+@utility app-card-pad {
+  @apply p-4;
+}
+
+@utility app-card-header {
+  @apply px-4 py-3 border-b border-border;
+}
+
+@utility app-card-header-compact {
+  @apply px-4 py-2.5 pb-2;
+}
+
+/* ── Lists / Rows ────────────────────────────────────────────────────────── */
+
+@utility app-list-row {
+  @apply flex items-center gap-3 px-3 py-2.5 rounded-md transition-colors;
+}
+
+@utility app-list-row-hover {
+  @apply flex items-center gap-3 px-3 py-2.5 rounded-md transition-colors hover:bg-accent/50 cursor-pointer;
+}
+
+@utility app-list-row-active {
+  @apply flex items-center gap-3 px-3 py-2.5 rounded-md transition-colors bg-accent font-medium;
+}
+
+@utility app-list-divider {
+  @apply border-t border-border;
+}
+
+/* ── Summary boxes (side panels) ─────────────────────────────────────────── */
+
+@utility app-summary-box {
+  @apply rounded-lg border border-border bg-muted/20 p-3;
+}
+
+@utility app-summary-row {
+  @apply flex items-center justify-between gap-2;
+}
+
+@utility app-summary-label {
+  @apply text-xs text-muted-foreground;
+}
+
+@utility app-summary-value {
+  @apply text-sm font-semibold tabular-nums text-foreground;
+}
+
+@utility app-summary-value-muted {
+  @apply text-sm font-semibold tabular-nums text-muted-foreground;
+}
+
+/* ── KPI ─────────────────────────────────────────────────────────────────── */
+
+@utility app-kpi-label {
+  @apply text-xs font-medium text-muted-foreground;
+}
+
+@utility app-kpi-value {
+  @apply text-2xl font-bold tabular-nums leading-none text-foreground;
+}
+
+@utility app-kpi-hint {
+  @apply text-[11px] leading-tight text-muted-foreground;
+}
+
+/* ── Sidebar ─────────────────────────────────────────────────────────────── */
+
+@utility app-sidebar-section-label {
+  @apply text-[11px] font-semibold uppercase tracking-wider text-sidebar-foreground/50 px-3 py-1.5;
+}
+
+@utility app-sidebar-item {
+  @apply flex items-center gap-2.5 px-3 py-2 rounded-md text-sm transition-colors text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground;
+}
+
+@utility app-sidebar-item-active {
+  @apply flex items-center gap-2.5 px-3 py-2 rounded-md text-sm bg-sidebar-accent text-sidebar-accent-foreground font-medium;
+}
+
+/* ── Status colors (absences, badges) ────────────────────────────────────── */
+
+@utility status-approved {
+  @apply bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-400 dark:border-emerald-800;
+}
+
+@utility status-pending {
+  @apply bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/30 dark:text-amber-400 dark:border-amber-800;
+}
+
+@utility status-rejected {
+  @apply bg-red-50 text-red-700 border-red-200 dark:bg-red-950/30 dark:text-red-400 dark:border-red-800;
+}
+
+/* ── Absence type colors ─────────────────────────────────────────────────── */
+
+@utility absence-conges {
+  @apply bg-violet-50 text-violet-700 border-violet-200 dark:bg-violet-950/30 dark:text-violet-400 dark:border-violet-800;
+}
+
+@utility absence-teletravail {
+  @apply bg-sky-50 text-sky-700 border-sky-200 dark:bg-sky-950/30 dark:text-sky-400 dark:border-sky-800;
+}
+
+@utility absence-maladie {
+  @apply bg-red-50 text-red-600 border-red-200 dark:bg-red-950/30 dark:text-red-400 dark:border-red-800;
+}
+
+@utility absence-sans-solde {
+  @apply bg-muted text-muted-foreground border-border;
+}
+
+/* ── Day sticks (support monthly view) ───────────────────────────────────── */
+
+@utility stick-base {
+  @apply h-5 w-1.5 shrink-0 rounded-sm border sm:w-2;
+}
+
+@utility stick-full {
+  @apply h-5 w-1.5 shrink-0 rounded-sm border sm:w-2 border-green-500/50 bg-green-50 dark:border-green-600/50 dark:bg-green-950/35;
+}
+
+@utility stick-partial {
+  @apply h-5 w-1.5 shrink-0 rounded-sm border sm:w-2 border-yellow-500/60 bg-yellow-50 dark:border-yellow-600/45 dark:bg-yellow-950/30;
+}
+
+@utility stick-empty {
+  @apply h-5 w-1.5 shrink-0 rounded-sm border sm:w-2 border-border/60 bg-muted/40 opacity-90 dark:border-border dark:bg-muted/50;
+}
+
+@utility stick-absent {
+  @apply h-5 w-1.5 shrink-0 rounded-sm border sm:w-2 border-red-400/85 bg-red-50 dark:border-red-800/50 dark:bg-red-950/30;
+}
+
+/* ── Hours text colors ───────────────────────────────────────────────────── */
+
+@utility hours-full {
+  @apply text-green-600 dark:text-green-400;
+}
+
+@utility hours-partial {
+  @apply text-yellow-700 dark:text-yellow-400;
+}
+
+@utility hours-empty {
+  @apply text-muted-foreground/40;
+}
+
+/* ── Toast variants ──────────────────────────────────────────────────────── */
+
+@utility toast-saved {
+  @apply border-0 bg-emerald-50/95 text-emerald-900 shadow-lg ring-1 ring-emerald-400/20 dark:bg-emerald-950/95 dark:text-emerald-100 dark:ring-emerald-500/20;
+}
+
+@utility toast-updated {
+  @apply border-0 bg-muted/95 text-foreground shadow-lg ring-1 ring-border/50 dark:bg-muted/95;
+}
+
+@utility toast-deleted {
+  @apply border-0 bg-amber-50/95 text-amber-900 shadow-lg ring-1 ring-amber-400/20 dark:bg-amber-950/95 dark:text-amber-100 dark:ring-amber-500/20;
+}
+
+@utility toast-error {
+  @apply border-0 bg-red-50/95 text-red-900 shadow-lg ring-1 ring-red-400/18 dark:bg-red-950/95 dark:text-red-100 dark:ring-red-500/20;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   ANIMATIONS
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+@keyframes notification-ping-halo {
+  75%, 100% { transform: scale(2); opacity: 0; }
+}
+
+.notification-ping-halo {
+  animation: notification-ping-halo 2.2s cubic-bezier(0, 0, 0.2, 1) infinite;
+  will-change: transform, opacity;
+}
+
+@keyframes notification-badge-bloom {
+  0%, 100% { opacity: 0.18; transform: scale(0.88); }
+  50% { opacity: 0.5; transform: scale(1.12); }
+}
+
+.notification-badge-bloom {
+  background: color-mix(in oklch, var(--ping-color) 24%, transparent);
+  animation: notification-badge-bloom 3.2s cubic-bezier(0.45, 0, 0.2, 1) infinite;
+  will-change: opacity, transform;
+}
+
+@keyframes app-toast-ping-burst {
+  0% { box-shadow: 0 0 0 0 var(--app-ping-burst, var(--ring)); opacity: 0.85; }
+  100% { box-shadow: 0 0 0 11px transparent; opacity: 0; }
+}
+
+.app-toast-ping-burst {
+  animation: app-toast-ping-burst 0.82s cubic-bezier(0, 0, 0.2, 1) forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .notification-ping-halo,
+  .notification-badge-bloom,
+  .app-toast-ping-burst {
+    animation: none;
+    opacity: 0;
+  }
+}

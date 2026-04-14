@@ -1,0 +1,24 @@
+meta {
+  name: Create Project
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/api/projects
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "name": "Nouveau Projet Test",
+    "color": "#FF5733",
+    "isActive": true,
+    "pole": "Innovation"
+  }
+}

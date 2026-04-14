@@ -1,0 +1,23 @@
+meta {
+  name: Create Absence Request
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/api/absence-requests
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "type": "conges_payes",
+    "startDate": "2026-05-11",
+    "endDate": "2026-05-15"
+  }
+}

@@ -1,0 +1,119 @@
+{
+  "name": "Notion → Sync Projets pointageApp",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours",
+              "hoursInterval": 1
+            }
+          ]
+        }
+      },
+      "id": "trigger",
+      "name": "Toutes les heures",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "operation": "getAll",
+        "databaseId": {
+          "__rl": true,
+          "value": "8543eea7d8724c4aaff6fbf8d90168e0",
+          "mode": "id"
+        },
+        "returnAll": true,
+        "options": {}
+      },
+      "id": "notion",
+      "name": "Lire Projets Notion",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [460, 300],
+      "credentials": {
+        "notionApi": {
+          "id": "",
+          "name": "Notion — à configurer"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Mapping pôle → couleur\nconst POLE_COLORS = {\n  'SUP': '#6B7280',\n  'DEV': '#3B82F6',\n  'DATA': '#8B5CF6',\n  'DESIGN': '#F472B6',\n  'INFRA': '#F97316',\n  'RH': '#14B8A6',\n  'COMM': '#FACC15',\n  'FINANCE': '#EF4444',\n  'JURIDIQUE': '#A78BFA',\n};\n\nconst projects = $input.all().map(item => {\n  const d = item.json;\n\n  // Nom du projet (aplati par n8n)\n  const name = d.name || d.property_name || 'Sans nom';\n\n  // Pôle code (formula → string ou array)\n  const poleRaw = Array.isArray(d.property_p_le_code)\n    ? d.property_p_le_code[0]\n    : d.property_p_le_code;\n  const pole = poleRaw || null;\n\n  // État d'avancement (aplati en string)\n  const status = d.property_tat_d_avancement || 'Pas commencé';\n  const isActive = status !== 'Terminé' && status !== 'Annulé';\n\n  // Code projet\n  const codeProjet = d.property_code_projet || '';\n\n  // Couleur basée sur le pôle\n  const color = POLE_COLORS[(pole || '').toUpperCase()] || '#6B7280';\n\n  // Nom affiché\n  const displayName = codeProjet && name ? `${codeProjet} — ${name}` : name;\n\n  return {\n    externalSourceId: d.id,\n    name: displayName,\n    color,\n    pole: pole || undefined,\n    isActive,\n  };\n}).filter(p => p.name && p.name !== 'Sans nom');\n\nreturn [{ json: { projects } }];"
+      },
+      "id": "transform",
+      "name": "Transformer → payload sync",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [680, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.POINTAGE_APP_URL ?? 'http://host.docker.internal:3004' }}/api/projects/sync",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-API-Key",
+              "value": "={{ $env.SYNC_API_KEY ?? '' }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "id": "http",
+      "name": "POST /api/projects/sync",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [900, 300]
+    }
+  ],
+  "connections": {
+    "Toutes les heures": {
+      "main": [
+        [
+          {
+            "node": "Lire Projets Notion",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Lire Projets Notion": {
+      "main": [
+        [
+          {
+            "node": "Transformer → payload sync",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Transformer → payload sync": {
+      "main": [
+        [
+          {
+            "node": "POST /api/projects/sync",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": []
+}

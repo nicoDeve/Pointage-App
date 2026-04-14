@@ -1,0 +1,36 @@
+meta {
+  name: Sync Projects (Notion)
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{baseUrl}}/api/projects/sync
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "projects": [
+      {
+        "externalSourceId": "notion-new-001",
+        "name": "Projet Sync Test",
+        "color": "#22C55E",
+        "pole": "Tech",
+        "isActive": true
+      },
+      {
+        "externalSourceId": "notion-001",
+        "name": "Application Mobile Holis (mis à jour)",
+        "color": "#3B82F6",
+        "pole": "Tech",
+        "isActive": true
+      }
+    ]
+  }
+}

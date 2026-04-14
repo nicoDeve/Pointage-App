@@ -1,0 +1,15 @@
+meta {
+  name: Delete Time Entry
+  type: http
+  seq: 4
+}
+
+delete {
+  url: {{baseUrl}}/api/time-entries/{{timeEntryId}}
+  body: none
+  auth: none
+}
+
+docs {
+  Note: remplacer {{timeEntryId}} par un UUID reel obtenu via GET /api/time-entries
+}

@@ -1,0 +1,11 @@
+meta {
+  name: List Time Entries
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/api/time-entries?userId={{myUserId}}&startDate=2026-03-23&endDate=2026-04-05
+  body: none
+  auth: none
+}

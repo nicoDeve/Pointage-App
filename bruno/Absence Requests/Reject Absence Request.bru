@@ -1,0 +1,30 @@
+meta {
+  name: Reject Absence Request
+  type: http
+  seq: 6
+}
+
+patch {
+  url: {{baseUrl}}/api/absence-requests/{{absenceRequestId}}/reject
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "rejectReasonCode": "chevauchement",
+    "rejectComment": "Chevauchement avec un autre collaborateur du meme pole"
+  }
+}
+
+docs {
+  Codes de refus disponibles :
+  - chevauchement
+  - effectif_insuffisant
+  - delai_non_respecte
+  - autre
+}

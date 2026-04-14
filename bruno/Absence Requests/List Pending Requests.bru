@@ -1,0 +1,11 @@
+meta {
+  name: List Pending Requests
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/api/absence-requests?status=en_attente
+  body: none
+  auth: none
+}

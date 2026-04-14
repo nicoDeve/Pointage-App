@@ -1,0 +1,11 @@
+meta {
+  name: Week Summary
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{baseUrl}}/api/time-entries/week-summary?userId={{myUserId}}&weekStart=2026-03-30
+  body: none
+  auth: none
+}

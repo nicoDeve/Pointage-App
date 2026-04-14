@@ -1,0 +1,17 @@
+meta {
+  name: Approve Absence Request
+  type: http
+  seq: 5
+}
+
+patch {
+  url: {{baseUrl}}/api/absence-requests/{{absenceRequestId}}/approve
+  body: none
+  auth: none
+}
+
+docs {
+  Note: remplacer {{absenceRequestId}} par l'ID d'une demande en_attente.
+  L'admin (Nicolas) peut approuver ses propres demandes.
+  Un validateur ne peut PAS approuver les siennes.
+}

@@ -1,0 +1,26 @@
+services:
+  n8n:
+    image: n8nio/n8n:latest
+    container_name: pointage-n8n
+    restart: unless-stopped
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    ports:
+      - "5678:5678"
+    environment:
+      - N8N_BASIC_AUTH_ACTIVE=true
+      - N8N_BASIC_AUTH_USER=admin
+      - N8N_BASIC_AUTH_PASSWORD=holis2026!
+      - N8N_HOST=localhost
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=http
+      - GENERIC_TIMEZONE=Europe/Paris
+      - TZ=Europe/Paris
+      # Variables accessibles dans les workflows via $env.VAR_NAME
+      - POINTAGE_APP_URL=http://host.docker.internal:3004
+      - SYNC_API_KEY=8632881fbadabc01f11cd70c23d7ae4d67c8ac744692172d81a705a3759aed10
+    volumes:
+      - n8n_data:/home/node/.n8n
+
+volumes:
+  n8n_data:
