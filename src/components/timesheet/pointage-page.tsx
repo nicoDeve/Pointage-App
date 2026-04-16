@@ -121,6 +121,14 @@ export function PointagePage({ user }: PointagePageProps) {
   const selectedWeekEntries = useMemo(() => getWeekEntries(selectedWeek), [selectedWeek, getWeekEntries])
   const weekTotalHours = useMemo(() => sumHours(selectedWeekEntries), [selectedWeekEntries])
 
+  // Live week total: replace saved hours for the open day with current drafts
+  const liveWeekTotalHours = useMemo(() => {
+    if (!selectedDate || !dayPanelOpen) return weekTotalHours
+    const savedDayHours = sumHours(selectedWeekEntries.filter((e) => e.workDate === selectedDate))
+    const draftDayTotal = dayDrafts.reduce((s, d) => s + d.duration, 0)
+    return weekTotalHours - savedDayHours + draftDayTotal
+  }, [weekTotalHours, selectedWeekEntries, selectedDate, dayPanelOpen, dayDrafts])
+
   // ─── Day panel actions ────────────────────────────────────────────
   const openDayPanel = (dateKey: string) => {
     setSelectedDate(dateKey)
@@ -210,7 +218,7 @@ export function PointagePage({ user }: PointagePageProps) {
           onClose={() => setDayPanelOpen(false)}
           selectedDate={selectedDate}
           selectedWeek={selectedWeek}
-          weekTotalHours={weekTotalHours}
+          weekTotalHours={liveWeekTotalHours}
           isPast={isPastWeek(selectedWeek)}
           projects={projects}
           drafts={dayDrafts}
