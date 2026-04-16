@@ -1,34 +1,39 @@
-import { useState } from 'react'
-import { format } from 'date-fns'
+import { useState, useEffect } from 'react'
+import { format, startOfYear } from 'date-fns'
 import { fr } from 'date-fns/locale'
 import {
-  ChevronUp, ChevronDown, ChevronRight, Users, Briefcase,
+  ChevronUp, ChevronDown, ChevronRight, Users, Briefcase, CalendarOff,
 } from 'lucide-react'
-import type { User, TimeEntry, Project } from '@repo/shared'
-import { toDateKey, HOURS_PER_WORKDAY, isPublicHoliday, parseDuration } from '@repo/shared'
+import type { User, TimeEntry, Project, AbsenceRequest } from '@repo/shared'
+import {
+  toDateKey, HOURS_PER_WORKDAY, isPublicHoliday, parseDuration,
+  countWorkdays, parseDateKey, PROJECT_COLORS,
+} from '@repo/shared'
 import { cn, getUserName, getUserInitials, dayHoursTextClass, formatHoursLabel } from '~/lib/utils'
 import { sidePanelTokens } from '~/lib/side-panel-tokens'
 import { AppSidePanel } from '~/components/shared/app-side-panel'
-import { CompletionStatusBadge, getCompletionStatus } from '~/components/shared/app-badges'
+import { CompletionStatusBadge, getCompletionStatus, AbsenceTypeBadge, AbsenceStatusBadge } from '~/components/shared/app-badges'
 import { Badge } from '~/components/ui/badge'
 import { Progress } from '~/components/ui/progress'
 import { Separator } from '~/components/ui/separator'
-import { Avatar, AvatarFallback } from '~/components/ui/avatar'
+import { Avatar, AvatarFallback, AvatarImage } from '~/components/ui/avatar'
 import { Card, CardContent } from '~/components/ui/card'
 import { Tabs, TabsList, TabsTrigger } from '~/components/ui/tabs'
 import { ExportMenu } from '~/components/shared/export-menu'
 import type { DetailTab, WeekSlice, UserStat } from './support-types'
-import { getUserHoursForDate, PROJECT_COLORS } from './support-types'
+import { getUserHoursForDate } from './support-types'
 
 interface SupportDetailPanelProps {
   open: boolean
   onClose: () => void
+  initialTab?: DetailTab
   selectedUser: User | null
   userStat: UserStat | null
   weekSlices: WeekSlice[]
   entryMap: Map<string, TimeEntry[]>
   projectMap: Map<string, Project>
   selectedMonthLabel: string
+  userAbsences: AbsenceRequest[]
   onExportUserCsv: (userId: string) => void
   onExportUserPennylane: (userId: string) => void
 }
@@ -36,18 +41,25 @@ interface SupportDetailPanelProps {
 export function SupportDetailPanel({
   open,
   onClose,
+  initialTab,
   selectedUser,
   userStat,
   weekSlices,
   entryMap,
   projectMap,
   selectedMonthLabel,
+  userAbsences,
   onExportUserCsv,
   onExportUserPennylane,
 }: SupportDetailPanelProps) {
   const [detailTab, setDetailTab] = useState<DetailTab>('weekly')
   const [expandedWeeks, setExpandedWeeks] = useState<Set<number>>(new Set())
   const [expandedDays, setExpandedDays] = useState<Set<string>>(new Set())
+
+  // Sync tab when panel opens with a specific tab
+  useEffect(() => {
+    if (open && initialTab) setDetailTab(initialTab)
+  }, [open, initialTab])
 
   const toggleWeek = (wn: number) =>
     setExpandedWeeks((prev) => {
@@ -82,7 +94,8 @@ export function SupportDetailPanel({
   const detailTitle = selectedUser ? (
     <div className="flex min-w-0 items-center gap-3">
       <Avatar className="h-9 w-9 shrink-0">
-        <AvatarFallback className="bg-muted text-xs text-muted-foreground">
+        <AvatarImage src={selectedUser.imageUrl ?? undefined} alt={getUserName(selectedUser)} />
+        <AvatarFallback className="bg-linear-to-br from-pink-400 to-purple-500 text-white text-xs">
           {getUserInitials(selectedUser)}
         </AvatarFallback>
       </Avatar>
@@ -103,8 +116,8 @@ export function SupportDetailPanel({
         <div className="flex items-center justify-between gap-2 border-b border-border pb-2">
           <Tabs value={detailTab} onValueChange={(v) => setDetailTab(v as DetailTab)}>
             <TabsList className="h-8">
-              <TabsTrigger value="weekly" className="px-2.5 text-xs">Hebdomadaire</TabsTrigger>
-              <TabsTrigger value="profile" className="px-2.5 text-xs">Profil</TabsTrigger>
+              <TabsTrigger value="weekly" className="px-2.5">Hebdomadaire</TabsTrigger>
+              <TabsTrigger value="profile" className="px-2.5">Profil</TabsTrigger>
             </TabsList>
           </Tabs>
           {userId && (
@@ -130,14 +143,15 @@ export function SupportDetailPanel({
                   </div>
                   <Progress
                     value={Math.min((sheetTotal / Math.max(sheetTarget, 1)) * 100, 100)}
-                    className="mt-2 h-1.5 w-40 bg-muted [&>div]:bg-blue-500"
+                    className="mt-2 h-1.5 w-40 bg-muted"
+                    indicatorClassName="bg-blue-500"
                   />
                 </div>
                 <CompletionStatusBadge status={sc} />
               </div>
 
               <div className="space-y-1.5">
-                <p className="app-section-title uppercase tracking-wider text-muted-foreground">Détail par semaine</p>
+                <p className="app-section-title text-muted-foreground">Détail par semaine</p>
                 <div className="divide-y divide-border overflow-hidden rounded-lg border border-border">
                   {weekData.map(({ slice, hours, target, isComplete: wComplete }) => {
                     const isExpanded = expandedWeeks.has(slice.isoWeek)
@@ -158,8 +172,8 @@ export function SupportDetailPanel({
                                 style={{ width: `${Math.min((hours / Math.max(target, 1)) * 100, 100)}%` }}
                               />
                             </div>
-                            <span className="text-xs text-foreground">{formatHoursLabel(hours)}</span>
-                            <span className="text-[11px] text-muted-foreground">/ {target}h</span>
+                            <span className="text-foreground">{formatHoursLabel(hours)}</span>
+                            <span className="text-xs text-muted-foreground">/ {target}h</span>
                           </div>
                           <div className="flex items-center gap-2">
                             <CompletionStatusBadge status={wStatus} label={wLabel} />
@@ -211,7 +225,7 @@ export function SupportDetailPanel({
                                               style={{ width: `${Math.min(100, (h / HOURS_PER_WORKDAY) * 100)}%` }}
                                             />
                                           </div>
-                                          <span className={cn('text-xs font-medium', dayHoursTextClass(h))}>
+                                          <span className={cn('font-medium', dayHoursTextClass(h))}>
                                             {h > 0 ? formatHoursLabel(h) : '—'}
                                           </span>
                                         </div>
@@ -232,14 +246,14 @@ export function SupportDetailPanel({
                                         const proj = projectMap.get(entry.projectId)
                                         return (
                                           <div key={entry.id} className="flex items-center justify-between">
-                                            <div className="flex items-center gap-2">
+                                            <div className="flex min-w-0 flex-1 items-center gap-2">
                                               <span
                                                 className="h-2 w-2 shrink-0 rounded-sm"
                                                 style={{ backgroundColor: proj?.color ?? PROJECT_COLORS[ei % PROJECT_COLORS.length] }}
                                               />
-                                              <span className="text-xs text-foreground">{proj?.name ?? '—'}</span>
+                                              <span className="truncate text-foreground">{proj?.name ?? '—'}</span>
                                             </div>
-                                            <span className="text-xs text-muted-foreground">{formatHoursLabel(parseDuration(entry.duration))}</span>
+                                            <span className="shrink-0 text-muted-foreground">{formatHoursLabel(parseDuration(entry.duration))}</span>
                                           </div>
                                         )
                                       })}
@@ -260,7 +274,7 @@ export function SupportDetailPanel({
               <button
                 type="button"
                 onClick={() => setDetailTab('profile')}
-                className="flex w-full items-center justify-center gap-2 text-xs text-muted-foreground transition-colors hover:text-primary"
+                className="flex w-full items-center justify-center gap-2 text-muted-foreground transition-colors hover:text-primary"
               >
                 <ChevronRight className="h-3.5 w-3.5" />
                 Voir le profil de {selectedUser ? getUserName(selectedUser).split(' ')[0] : ''}
@@ -273,62 +287,55 @@ export function SupportDetailPanel({
         {detailTab === 'profile' && userStat && selectedUser && (() => {
           const { total, isComplete, byProject } = userStat
 
+          const leaveQuota = Number(selectedUser.leaveQuota ?? 25)
+          const yearStart = toDateKey(startOfYear(new Date()))
+          const approvedCPDays = userAbsences
+            .filter((a) => a.type === 'conges_payes' && a.status === 'approuvee' && a.startDate >= yearStart)
+            .reduce((s, a) => s + countWorkdays(parseDateKey(a.startDate), parseDateKey(a.endDate)) * (a.halfDay ? 0.5 : 1), 0)
+          const remainingCP = Math.max(0, leaveQuota - approvedCPDays)
+
+          const nonRefused = userAbsences.filter((a) => a.status !== 'refusee')
+          const refusees = userAbsences.filter((a) => a.status === 'refusee')
+
           return (
             <>
-              <Card className="border border-border">
-                <CardContent className="p-3">
-                  <div className="mb-2 flex items-center justify-between">
-                    <span className="text-xs font-medium text-foreground">Ressources</span>
+              <Card className="gap-0 py-0">
+                <CardContent className="p-4 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-medium text-muted-foreground">Ressources</span>
                     <Users className="h-3.5 w-3.5 text-muted-foreground" />
                   </div>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <p className="mb-0.5 text-[11px] text-muted-foreground">Projets actifs</p>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <p className="text-xs font-medium text-muted-foreground">Projets actifs</p>
                       <div className="flex items-baseline gap-1">
-                        <span className="text-lg font-bold tabular-nums text-foreground">{byProject.size}</span>
-                        <span className="text-[11px] text-muted-foreground">en cours</span>
-                      </div>
-                      <div className="mt-1 space-y-0.5">
-                        {[...byProject.keys()].slice(0, 2).map((pid, i) => {
-                          const proj = projectMap.get(pid)
-                          return (
-                            <div key={pid} className="flex items-center gap-1">
-                              <span className="h-1.5 w-1.5 rounded-sm" style={{ backgroundColor: proj?.color ?? PROJECT_COLORS[i] }} />
-                              <span className="max-w-[90px] truncate text-[11px] text-muted-foreground">{proj?.name ?? '—'}</span>
-                            </div>
-                          )
-                        })}
-                        {byProject.size > 2 && (
-                          <span className="text-[11px] text-muted-foreground">+{byProject.size - 2} autres</span>
-                        )}
+                        <span className="text-xl font-bold tabular-nums leading-none text-foreground">{byProject.size}</span>
+                        <span className="text-xs text-muted-foreground">en cours</span>
                       </div>
                     </div>
-                    <div className="space-y-2">
-                      <div>
-                        <p className="mb-0.5 text-[11px] text-muted-foreground">Congés restants</p>
-                        <div className="flex items-baseline gap-0.5">
-                          <span className="text-lg font-bold tabular-nums text-violet-600 dark:text-violet-400">
-                            {Number(selectedUser.leaveQuota ?? 25)}
-                          </span>
-                          <span className="text-[11px] text-muted-foreground">j</span>
-                        </div>
+                    <div className="space-y-1">
+                      <p className="text-xs font-medium text-muted-foreground">Congés restants</p>
+                      <div className="flex items-baseline gap-0.5">
+                        <span className="text-xl font-bold tabular-nums leading-none text-foreground">{remainingCP}</span>
+                        <span className="text-xs text-muted-foreground">/ {leaveQuota} j</span>
                       </div>
+                      <p className="text-xs text-muted-foreground">{approvedCPDays} j utilisés</p>
                     </div>
                   </div>
                 </CardContent>
               </Card>
 
-              <Separator />
+              <Separator className="my-1" />
 
-              <div className="space-y-2">
+              <div className="space-y-3">
                 <div className="space-y-0.5">
                   <div className="flex items-center gap-2">
                     <Briefcase className="h-3.5 w-3.5 text-muted-foreground" />
-                    <span className="text-xs font-medium text-foreground">Heures par projet</span>
+                    <span className="text-xs font-medium text-muted-foreground">Heures par projet</span>
                   </div>
-                  <p className="pl-5 text-[11px] text-muted-foreground">Répartition pour {selectedMonthLabel}</p>
+                  <p className="pl-5 text-xs text-muted-foreground">Répartition pour {selectedMonthLabel}</p>
                 </div>
-                <Card className="border border-border">
+                <Card className="gap-0 py-0">
                   <CardContent className="space-y-2 p-3">
                     {byProject.size === 0 ? (
                       <p className="text-xs text-muted-foreground">Aucune saisie ce mois</p>
@@ -339,7 +346,7 @@ export function SupportDetailPanel({
                           .map(([pid, hours], i) => {
                             const proj = projectMap.get(pid)
                             return (
-                              <div key={pid} className="flex items-center justify-between gap-2 text-xs">
+                              <div key={pid} className="flex items-center justify-between gap-2">
                                 <span className="flex min-w-0 items-center gap-2 truncate text-muted-foreground">
                                   <span
                                     className="h-2 w-2 shrink-0 rounded-sm"
@@ -352,7 +359,7 @@ export function SupportDetailPanel({
                             )
                           })}
                         <Separator />
-                        <div className="flex justify-between text-xs font-medium">
+                        <div className="flex justify-between font-medium">
                           <span>Total ({selectedMonthLabel})</span>
                           <span className="tabular-nums">{formatHoursLabel(total)}</span>
                         </div>
@@ -364,9 +371,51 @@ export function SupportDetailPanel({
 
               <Separator />
 
+              {/* Absence history */}
               <div className="space-y-2">
-                <span className="text-xs font-medium text-foreground">Informations</span>
-                <div className="space-y-1 text-xs text-muted-foreground">
+                <div className="flex items-center gap-2">
+                  <CalendarOff className="h-3.5 w-3.5 text-muted-foreground" />
+                  <span className="text-xs font-medium text-muted-foreground">Absences</span>
+                </div>
+                {userAbsences.length === 0 ? (
+                  <p className="text-xs text-muted-foreground">Aucune absence enregistrée</p>
+                ) : (
+                  <div className="space-y-1.5">
+                    {nonRefused.length > 0 && nonRefused.map((a) => {
+                      const days = countWorkdays(parseDateKey(a.startDate), parseDateKey(a.endDate)) * (a.halfDay ? 0.5 : 1)
+                      return (
+                        <div key={a.id} className="flex items-start justify-between gap-2 rounded-md border border-border bg-muted/20 px-2.5 py-2">
+                          <div className="min-w-0 space-y-0.5">
+                            <div className="flex flex-wrap items-center gap-1">
+                              <AbsenceTypeBadge type={a.type} />
+                              <AbsenceStatusBadge status={a.status} />
+                            </div>
+                            <p className="text-xs text-muted-foreground">
+                              {format(parseDateKey(a.startDate), 'd MMM yyyy', { locale: fr })}
+                              {a.startDate !== a.endDate && (
+                                <> → {format(parseDateKey(a.endDate), 'd MMM yyyy', { locale: fr })}</>
+                              )}
+                              {' · '}{days}j ouvré{days > 1 ? 's' : ''}
+                            </p>
+                            {a.comment && (
+                              <p className="text-xs italic text-muted-foreground wrap-anywhere">{a.comment}</p>
+                            )}
+                          </div>
+                        </div>
+                      )
+                    })}
+                    {refusees.length > 0 && (
+                      <p className="text-xs text-muted-foreground">{refusees.length} demande{refusees.length > 1 ? 's' : ''} refusée{refusees.length > 1 ? 's' : ''} non affichée{refusees.length > 1 ? 's' : ''}</p>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              <Separator />
+
+              <div className="space-y-2">
+                <span className="text-xs font-medium text-muted-foreground">Informations</span>
+                <div className="space-y-1 text-muted-foreground">
                   <div className="flex justify-between">
                     <span>Poste</span>
                     <span className="text-foreground">{selectedUser.poste ?? '—'}</span>
@@ -377,7 +426,7 @@ export function SupportDetailPanel({
                   </div>
                   <div className="flex justify-between">
                     <span>Statut</span>
-                    <span className={isComplete ? 'text-green-600' : 'text-amber-600'}>
+                    <span className={isComplete ? 'text-emerald-500' : 'text-amber-500'}>
                       {isComplete ? 'Complet' : 'Incomplet'}
                     </span>
                   </div>

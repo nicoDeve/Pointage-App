@@ -128,3 +128,11 @@ export function parseDuration(d: string | number): number {
 export function sumHours(entries: { duration: string | number }[]): number {
   return entries.reduce((s, e) => s + parseDuration(e.duration), 0)
 }
+
+/** Format hours label: 0 → "0h", 3.5 → "3h30", 7 → "7h", 2.25 → "2h15" */
+export function formatHoursLabel(h: number): string {
+  if (h === 0) return '0h'
+  const full = Math.floor(h)
+  const minutes = Math.round((h % 1) * 60)
+  return minutes > 0 ? `${full}h${String(minutes).padStart(2, '0')}` : `${full}h`
+}

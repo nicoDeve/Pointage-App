@@ -11,7 +11,7 @@ interface KpiCardProps {
   suffix?: string
   hint?: string
   progress?: number
-  colorClass?: string
+  indicatorClassName?: string
   loading?: boolean
   icon?: ComponentType<{ className?: string }>
   className?: string
@@ -24,16 +24,16 @@ export function KpiCard({
   suffix,
   hint,
   progress,
-  colorClass,
+  indicatorClassName,
   loading = false,
   icon: Icon,
   className,
 }: KpiCardProps) {
   return (
-    <Card className={cn('gap-0 border border-border py-0 shadow-sm', className)}>
+    <Card className={cn('gap-0 py-0', className)}>
       <CardContent className="p-4 space-y-2">
         <div className="flex items-center justify-between gap-2">
-          <span className="app-kpi-label">{label}</span>
+          <span className="text-xs font-medium text-muted-foreground">{label}</span>
           {Icon && <Icon className="size-3.5 shrink-0 text-muted-foreground" />}
         </div>
         {loading ? (
@@ -46,9 +46,9 @@ export function KpiCard({
               {suffix && <span className="text-xs text-muted-foreground">{suffix}</span>}
             </div>
             {progress !== undefined && (
-              <Progress value={progress} className={cn('h-1 bg-muted', colorClass)} />
+              <Progress value={progress} className="h-1 bg-muted" indicatorClassName={indicatorClassName} />
             )}
-            {hint && <p className="app-kpi-hint">{hint}</p>}
+            {hint && <p className="text-xs text-muted-foreground">{hint}</p>}
           </>
         )}
       </CardContent>

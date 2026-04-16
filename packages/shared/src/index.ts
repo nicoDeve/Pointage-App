@@ -11,12 +11,23 @@ export type {
 
 export {
   USER_ROLES,
+  USER_ROLE_LABELS,
+  DEFAULT_POSTE_LABEL,
   ABSENCE_TYPES,
   ABSENCE_STATUSES,
   REJECT_REASON_CODES,
   ABSENCE_TYPE_COLORS,
   AbsenceListFilter,
   ABSENCE_LIST_FILTER_LABELS,
+  GESTION_PAGE_ROLES,
+  ABSENCE_MANAGEMENT_ROLES,
+  SUPPORT_PAGE_ROLES,
+  ENTRY_CREATION_ROLES,
+  ABSENCE_VIEW_ROLES,
+  hasRole,
+  PROJECT_COLORS,
+  CANCELLATION_REJECT_REASON,
+  CANCELLATION_REJECT_COMMENT,
 } from './enums'
 export type { AbsenceListFilter as AbsenceListFilterType } from './enums'
 
@@ -25,6 +36,7 @@ export {
   WEEKLY_OFF_DAYS,
   HOURS_PER_WORKDAY,
   DEFAULT_WEEKLY_TARGET,
+  TELETRAVAIL_QUOTA,
   HOURS_STEP,
   MAX_HOURS_PER_DAY,
 } from './calendar-config'
@@ -49,4 +61,5 @@ export {
   weekTargetHours,
   monthWorkdays,
   monthTargetHours,
+  formatHoursLabel,
 } from './calendar'

@@ -13,7 +13,7 @@ import {
 import { api } from '~/lib/api'
 import { notifySaved, notifyError } from '~/lib/notify'
 import { publishToastPing } from '~/lib/toast-ping'
-import { useProjects } from '~/hooks/use-app-data'
+import { useProjects, useAppLoading } from '~/hooks/use-app-data'
 import { usePageData } from '~/hooks/use-page-data'
 import { ScrollArea } from '~/components/ui/scroll-area'
 import { PointageToolbar } from './pointage-toolbar'
@@ -39,8 +39,10 @@ export function PointagePage({ user }: PointagePageProps) {
 
   // ─── Data ─────────────────────────────────────────────────────────
   const projects = useProjects()
+  const appLoading = useAppLoading()
 
-  const { data: entries, loading, reload } = usePageData(
+  const { data: entries, loading: pageLoading, reload } = usePageData(
+    'time-entries',
     () => api.timeEntries.list(
       user.id,
       toDateKey(startOfYear(now)),
@@ -48,6 +50,7 @@ export function PointagePage({ user }: PointagePageProps) {
     ),
     [user.id],
   )
+  const loading = pageLoading || appLoading
   const allEntries = entries ?? []
 
   // ─── View state ───────────────────────────────────────────────────

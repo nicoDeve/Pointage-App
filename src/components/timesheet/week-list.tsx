@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import type { TimeEntry, Project } from '@repo/shared'
 import { Skeleton } from '~/components/ui/skeleton'
+import { Table, TableBody, TableCell, TableRow } from '~/components/ui/table'
 import { WeekRow } from './week-row'
 import type { WeekOption } from './pointage-types'
 
@@ -23,7 +24,7 @@ export function WeekList({
   isPastWeek,
   onSelectWeek,
 }: WeekListProps) {
-  const currentWeekRef = useRef<HTMLDivElement>(null)
+  const currentWeekRef = useRef<HTMLTableRowElement>(null)
   const hasScrolledRef = useRef(false)
 
   useEffect(() => {
@@ -35,29 +36,50 @@ export function WeekList({
 
   if (loading) {
     return (
-      <div className="space-y-px">
-        {Array.from({ length: 8 }).map((_, i) => (
-          <Skeleton key={i} className="h-[72px] w-full rounded-none" />
-        ))}
-      </div>
+      <Table>
+        <TableBody>
+          {Array.from({ length: 8 }).map((_, i) => (
+            <TableRow key={i}>
+              <TableCell className="px-3 py-2.5">
+                <div className="space-y-1.5">
+                  <Skeleton className="h-4 w-24" />
+                  <Skeleton className="h-3.5 w-32" />
+                  <Skeleton className="mt-1.5 h-5 w-20 rounded-full" />
+                </div>
+              </TableCell>
+              <TableCell className="w-22 px-3 py-2.5">
+                <div className="flex flex-col items-end gap-1.5">
+                  <Skeleton className="h-4 w-16" />
+                  <Skeleton className="h-5 w-14 rounded-full" />
+                </div>
+              </TableCell>
+              <TableCell className="w-8 px-3 py-2.5">
+                <Skeleton className="h-4 w-4 mx-auto" />
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
     )
   }
 
   if (weeks.length === 0) {
     return (
-      <div className="py-10 text-center text-sm text-muted-foreground">
+      <div className="py-10 text-center text-muted-foreground">
         Aucune semaine ne correspond aux filtres
       </div>
     )
   }
 
   return (
-    <div className="divide-y divide-border">
-      {weeks.map((w) => {
-        const isCurrent = isCurrentWeek(w)
-        return (
-          <div key={`${w.year}-${w.week}`} ref={isCurrent ? currentWeekRef : undefined}>
+    <Table>
+      <TableBody>
+        {weeks.map((w) => {
+          const isCurrent = isCurrentWeek(w)
+          return (
             <WeekRow
+              key={`${w.year}-${w.week}`}
+              ref={isCurrent ? currentWeekRef : undefined}
               week={w}
               entries={getWeekEntries(w)}
               projects={projects}
@@ -65,9 +87,9 @@ export function WeekList({
               isPast={isPastWeek(w)}
               onSelect={onSelectWeek}
             />
-          </div>
-        )
-      })}
-    </div>
+          )
+        })}
+      </TableBody>
+    </Table>
   )
 }

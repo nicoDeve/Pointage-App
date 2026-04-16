@@ -6,10 +6,11 @@ import { requireRoles } from '~/middleware/roles'
 import { absenceRequestIdParamSchema } from '~/lib/validators/absence-requests'
 import { badRequest, notFound, forbidden, conflict, safeHandler } from '~/lib/errors'
 import type { AuthContext } from '~/middleware/auth'
+import { hasRole, ABSENCE_MANAGEMENT_ROLES } from '@repo/shared'
 
 export const Route = createFileRoute('/api/absence-requests/$id/approve')({
   server: {
-    middleware: [requireRoles(['validateur', 'admin'])],
+    middleware: [requireRoles(ABSENCE_MANAGEMENT_ROLES)],
     handlers: {
       PATCH: safeHandler(async ({ params, context }) => {
         const { user } = context as AuthContext
@@ -25,7 +26,7 @@ export const Route = createFileRoute('/api/absence-requests/$id/approve')({
           return conflict('Seule une demande en attente peut être approuvée')
         }
 
-        const isAdmin = user.roles.includes('admin')
+        const isAdmin = hasRole(user.roles, ['admin'])
         if (request.userId === user.id && !isAdmin) {
           return forbidden('Un validateur ne peut pas approuver ses propres demandes')
         }

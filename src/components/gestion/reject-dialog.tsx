@@ -44,7 +44,7 @@ export function RejectDialog({ open, onClose, onConfirm }: RejectDialogProps) {
         </DialogHeader>
         <div className="space-y-4 pt-2">
           <div className="space-y-1.5">
-            <Label className="text-label">Motif</Label>
+            <Label className="text-xs text-muted-foreground">Motif</Label>
             <Select value={code} onValueChange={(v) => setCode(v as RejectReasonCode)}>
               <SelectTrigger>
                 <SelectValue placeholder="Sélectionner un motif" />
@@ -59,7 +59,7 @@ export function RejectDialog({ open, onClose, onConfirm }: RejectDialogProps) {
             </Select>
           </div>
           <div className="space-y-1.5">
-            <Label className="text-label">Commentaire (optionnel)</Label>
+            <Label className="text-xs text-muted-foreground">Commentaire (optionnel)</Label>
             <Textarea
               value={comment}
               onChange={(e) => setComment(e.target.value)}

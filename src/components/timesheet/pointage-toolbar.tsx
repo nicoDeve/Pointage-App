@@ -133,11 +133,11 @@ function FilterPopover({
       </PopoverTrigger>
       <PopoverContent className="w-72 border border-border/50 p-0 shadow-lg" align="end">
         <div className="flex items-center justify-between px-4 py-3 bg-muted/50">
-          <span className="text-sm font-semibold text-foreground">Filtres</span>
+          <span className="font-semibold text-foreground">Filtres</span>
           {hasActiveFilters && (
             <button
               onClick={() => { onFilterPeriodChange('all'); onFilterProjectChange('all') }}
-              className="text-xs text-muted-foreground hover:text-primary transition-colors"
+              className="text-muted-foreground hover:text-primary transition-colors"
             >
               Effacer tout
             </button>
@@ -157,7 +157,7 @@ function FilterPopover({
                   key={option.value}
                   onClick={() => onFilterPeriodChange(option.value)}
                   className={cn(
-                    'px-3 py-2 text-xs font-medium rounded-md border transition-all',
+                    'px-3 py-2 font-medium rounded-md border transition-all',
                     filterPeriod === option.value
                       ? 'border-primary text-primary bg-background'
                       : 'border-transparent bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground',
@@ -171,7 +171,7 @@ function FilterPopover({
           <div className="space-y-2">
             <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Projet</label>
             <Select value={filterProject} onValueChange={onFilterProjectChange}>
-              <SelectTrigger className="h-9 text-sm">
+              <SelectTrigger className="h-9">
                 <SelectValue placeholder="Tous les projets" />
               </SelectTrigger>
               <SelectContent>

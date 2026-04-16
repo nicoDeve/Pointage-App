@@ -8,7 +8,9 @@ const apiLoggingMiddleware = createMiddleware().server(
     const start = Date.now()
     const result = await next()
     const duration = Date.now() - start
-    console.log(`[API] ${request.method} ${request.url} — ${duration}ms`)
+    if (process.env.NODE_ENV !== 'production') {
+      console.log(`[API] ${request.method} ${request.url} — ${duration}ms`)
+    }
     return result
   },
 )

@@ -5,6 +5,7 @@ import { users } from '~/db/schema'
 import { authMiddleware, type AuthContext } from '~/middleware/auth'
 import { userIdParamSchema, updateUserSchema } from '~/lib/validators/users'
 import { notFound, forbidden, badRequest, safeHandler } from '~/lib/errors'
+import { hasRole, SUPPORT_PAGE_ROLES } from '@repo/shared'
 
 export const Route = createFileRoute('/api/users/$id')({
   server: {
@@ -19,9 +20,7 @@ export const Route = createFileRoute('/api/users/$id')({
           }
 
           const isSelf = user.id === parsed.data.id
-          const canViewOthers = user.roles.some((r: string) =>
-            ['admin', 'support'].includes(r),
-          )
+          const canViewOthers = hasRole(user.roles, SUPPORT_PAGE_ROLES)
           if (!isSelf && !canViewOthers) {
             return forbidden()
           }
@@ -36,7 +35,7 @@ export const Route = createFileRoute('/api/users/$id')({
 
         PATCH: safeHandler(async ({ params, request, context }) => {
           const { user } = context as AuthContext
-          const isAdmin = user.roles.includes('admin')
+          const isAdmin = hasRole(user.roles, ['admin'])
           if (!isAdmin) {
             return forbidden()
           }

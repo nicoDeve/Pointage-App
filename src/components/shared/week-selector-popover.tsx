@@ -58,7 +58,7 @@ export function WeekSelectorPopover({
       <PopoverTrigger asChild>
         <Button
           variant="outline"
-          className="h-9 w-full justify-between gap-2 font-normal text-sm"
+          className="h-9 w-full justify-between gap-2 font-normal"
         >
           <span className="flex items-center gap-2">
             <CalendarDays className="size-4 text-muted-foreground" />
@@ -69,15 +69,15 @@ export function WeekSelectorPopover({
       </PopoverTrigger>
       <PopoverContent
         align="start"
-        className="w-[min(calc(100vw-2rem),22rem)] p-0"
+        className="w-full max-w-sm p-0"
       >
         <div className="bg-muted/20 px-3 py-2.5 border-b border-border">
           <p className="text-xs font-semibold">Sélectionner une semaine</p>
-          <p className="text-[11px] text-muted-foreground mt-0.5">
+          <p className="text-xs text-muted-foreground mt-0.5">
             Semaines avec des entrées de temps
           </p>
         </div>
-        <ScrollArea className="h-[min(280px,45vh)]">
+        <ScrollArea className="max-h-72">
           <div className="p-1">
             {weeks.map((w) => {
               const status = getWeekStatus(w, currentWeek, currentYear)
@@ -92,7 +92,7 @@ export function WeekSelectorPopover({
                     setOpen(false)
                   }}
                   className={cn(
-                    'w-full flex items-center justify-between rounded-md px-2.5 py-2 text-left text-sm transition-colors',
+                    'w-full flex items-center justify-between rounded-md px-2.5 py-2 text-left transition-colors',
                     isSelected
                       ? 'bg-primary/10 border border-primary/20'
                       : 'hover:bg-muted/80',
@@ -107,7 +107,7 @@ export function WeekSelectorPopover({
                   </span>
                   <PeriodStatusBadge
                     status={status === 'current' ? 'en_cours' : status === 'future' ? 'a_venir' : 'passee'}
-                    className="text-[10px] h-5 px-1.5 ml-2 shrink-0"
+                    className="text-xs h-5 px-1.5 ml-2 shrink-0"
                   />
                 </button>
               )

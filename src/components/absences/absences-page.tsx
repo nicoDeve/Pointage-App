@@ -6,6 +6,7 @@ import {
   AbsenceListFilter,
   ABSENCE_LIST_FILTER_LABELS,
   HOURS_PER_WORKDAY,
+  TELETRAVAIL_QUOTA,
   countWorkdays,
   parseDateKey,
   toDateKey,
@@ -24,6 +25,7 @@ import {
   SelectValue,
 } from '~/components/ui/select'
 import { ScrollArea } from '~/components/ui/scroll-area'
+import { Table, TableBody, TableCell, TableRow } from '~/components/ui/table'
 import { AbsenceList } from './absence-list'
 import { AbsenceFormPanel } from './absence-form-panel'
 
@@ -36,6 +38,7 @@ export function AbsencesPage({ user }: AbsencesPageProps) {
   const [panelOpen, setPanelOpen] = useState(false)
 
   const { data: _absences, loading, reload } = usePageData(
+    'absence-requests',
     () => api.absenceRequests.list({ userId: user.id }),
     [user.id],
   )
@@ -59,25 +62,23 @@ export function AbsencesPage({ user }: AbsencesPageProps) {
   const approvedCPDays = useMemo(() =>
     absences
       .filter((a) => a.type === 'conges_payes' && a.status === 'approuvee' && a.startDate >= yearStart)
-      .reduce((s, a) => s + countWorkdays(parseDateKey(a.startDate), parseDateKey(a.endDate)), 0),
+      .reduce((s, a) => s + countWorkdays(parseDateKey(a.startDate), parseDateKey(a.endDate)) * (a.halfDay ? 0.5 : 1), 0),
     [absences, yearStart],
   )
   const remainingCP = Math.max(0, leaveQuota - approvedCPDays)
 
-  // TT quota : 10j par défaut
-  const TT_QUOTA = 10
   const approvedTTDays = useMemo(() =>
     absences
       .filter((a) => a.type === 'teletravail' && a.status === 'approuvee' && a.startDate >= yearStart)
-      .reduce((s, a) => s + countWorkdays(parseDateKey(a.startDate), parseDateKey(a.endDate)), 0),
+      .reduce((s, a) => s + countWorkdays(parseDateKey(a.startDate), parseDateKey(a.endDate)) * (a.halfDay ? 0.5 : 1), 0),
     [absences, yearStart],
   )
-  const remainingTT = Math.max(0, TT_QUOTA - approvedTTDays)
+  const remainingTT = Math.max(0, TELETRAVAIL_QUOTA - approvedTTDays)
 
   const otherDays = useMemo(() =>
     absences
       .filter((a) => ['maladie', 'sans_solde'].includes(a.type) && a.status !== 'refusee')
-      .reduce((s, a) => s + countWorkdays(parseDateKey(a.startDate), parseDateKey(a.endDate)), 0),
+      .reduce((s, a) => s + countWorkdays(parseDateKey(a.startDate), parseDateKey(a.endDate)) * (a.halfDay ? 0.5 : 1), 0),
     [absences],
   )
 
@@ -96,16 +97,16 @@ export function AbsencesPage({ user }: AbsencesPageProps) {
           value={remainingCP}
           suffix={`/ ${leaveQuota} j`}
           progress={leaveQuota > 0 ? (approvedCPDays / leaveQuota) * 100 : 0}
-          colorClass="[&>div]:bg-violet-500"
+          indicatorClassName="bg-violet-500"
           hint={`${approvedCPDays} j utilisés · ${approvedCPDays * HOURS_PER_WORKDAY}h équivalent`}
           loading={loading}
         />
         <KpiCard
           label="Télétravail"
           value={remainingTT}
-          suffix={`/ ${TT_QUOTA} j`}
-          progress={TT_QUOTA > 0 ? (approvedTTDays / TT_QUOTA) * 100 : 0}
-          colorClass="[&>div]:bg-sky-500"
+          suffix={`/ ${TELETRAVAIL_QUOTA} j`}
+          progress={TELETRAVAIL_QUOTA > 0 ? (approvedTTDays / TELETRAVAIL_QUOTA) * 100 : 0}
+          indicatorClassName="bg-sky-500"
           hint={`${approvedTTDays} j utilisés`}
           loading={loading}
         />
@@ -114,7 +115,7 @@ export function AbsencesPage({ user }: AbsencesPageProps) {
           value={otherDays}
           unit="j"
           progress={otherDays > 0 ? Math.min(100, (otherDays / 30) * 100) : 0}
-          colorClass="[&>div]:bg-red-500"
+          indicatorClassName="bg-red-500"
           hint="Jours ouvrés cumulés"
           loading={loading}
         />
@@ -135,12 +136,12 @@ export function AbsencesPage({ user }: AbsencesPageProps) {
               Nouvelle absence
             </Button>
             <Select value={filter} onValueChange={(v) => setFilter(v as AbsenceListFilter)}>
-              <SelectTrigger className="h-8 w-44 text-xs">
+              <SelectTrigger size="sm" className="w-auto">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
                 {Object.entries(ABSENCE_LIST_FILTER_LABELS).map(([key, label]) => (
-                  <SelectItem key={key} value={key} className="text-xs">
+                  <SelectItem key={key} value={key}>
                     {label}
                     {key !== 'all' && ` (${counts[key] ?? 0})`}
                   </SelectItem>
@@ -152,8 +153,27 @@ export function AbsencesPage({ user }: AbsencesPageProps) {
 
         <ScrollArea className="min-h-0 flex-1">
           {loading ? (
-            <div className="space-y-2">
-              {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-12 w-full" />)}
+            <div className="overflow-hidden rounded-lg border border-border">
+              <Table>
+                <TableBody>
+                  {Array.from({ length: 4 }).map((_, i) => (
+                    <TableRow key={i}>
+                      <TableCell className="px-3 py-2.5">
+                        <div className="space-y-1">
+                          <Skeleton className="h-5 w-24 rounded-full" />
+                          <Skeleton className="h-3.5 w-36" />
+                        </div>
+                      </TableCell>
+                      <TableCell className="w-16 px-3 py-2.5 text-center">
+                        <Skeleton className="h-4 w-5 mx-auto" />
+                      </TableCell>
+                      <TableCell className="w-24 px-3 py-2.5 text-center">
+                        <Skeleton className="h-5 w-16 rounded-full mx-auto" />
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
             </div>
           ) : (
             <AbsenceList absences={filtered} onRefresh={reload} />

@@ -1,4 +1,4 @@
-﻿import { useMemo } from 'react'
+import { useMemo } from 'react'
 import { useNavigate } from '@tanstack/react-router'
 import {
   Clock,
@@ -8,7 +8,7 @@ import {
   CheckCircle2,
   AlertCircle,
 } from 'lucide-react'
-import { addWeeks, startOfYear, endOfWeek, format } from 'date-fns'
+import { startOfYear, startOfMonth, endOfMonth, endOfWeek, format } from 'date-fns'
 import { fr } from 'date-fns/locale'
 import type { User, TimeEntry, Project } from '@repo/shared'
 import {
@@ -35,7 +35,7 @@ import { ScrollArea } from '~/components/ui/scroll-area'
 import { ChartAreaInteractive } from './chart-area-interactive'
 import { cn, formatHoursLabel } from '~/lib/utils'
 import { usePageData } from '~/hooks/use-page-data'
-import { useProjects } from '~/hooks/use-app-data'
+import { useProjects, useAppLoading } from '~/hooks/use-app-data'
 
 interface DashboardPageProps {
   user: User
@@ -51,7 +51,8 @@ export function DashboardPage({ user }: DashboardPageProps) {
   const isoYear = getIsoWeekYear(now)
   const currentTarget = weekTargetHours(isoYear, isoWeek)
 
-  const { data, loading } = usePageData(
+  const { data, loading: pageLoading } = usePageData(
+    'dashboard',
     async () => {
       const [entries, absences] = await Promise.all([
         api.timeEntries.list(user.id, yearStart, toDateKey(weekEnd)),
@@ -65,6 +66,8 @@ export function DashboardPage({ user }: DashboardPageProps) {
   const entries = data?.entries ?? []
   const absences = data?.absences ?? []
   const projects = useProjects()
+  const appLoading = useAppLoading()
+  const loading = pageLoading || appLoading
 
   const projectMap = useMemo(() => {
     const m = new Map<string, Project>()
@@ -112,7 +115,7 @@ export function DashboardPage({ user }: DashboardPageProps) {
           a.startDate >= yearStart,
       )
       .reduce((s, a) => {
-        return s + countWorkdays(new Date(a.startDate + 'T00:00:00'), new Date(a.endDate + 'T00:00:00'))
+        return s + countWorkdays(parseDateKey(a.startDate), parseDateKey(a.endDate)) * (a.halfDay ? 0.5 : 1)
       }, 0)
   }, [absences, yearStart])
   const remainingCP = Math.max(0, leaveQuota - approvedCPDays)
@@ -125,22 +128,30 @@ export function DashboardPage({ user }: DashboardPageProps) {
   )
   const currentWeekHours = sumHours(currentWeekEntries)
 
-  // Dernières 4 semaines
-  const last4Weeks = useMemo(() => {
-    return Array.from({ length: 4 }, (_, i) => {
-      const d = addWeeks(now, -(3 - i))
-      const y = getIsoWeekYear(d)
-      const w = getIsoWeek(d)
-      const mon = getIsoWeekMonday(y, w)
-      const fri = new Date(mon)
-      fri.setDate(mon.getDate() + 4)
-      const monKey = toDateKey(mon)
-      const friKey = toDateKey(fri)
-      const weekEntries = entries.filter((e) => e.workDate >= monKey && e.workDate <= friKey)
-      const hours = sumHours(weekEntries)
-      const target = weekTargetHours(y, w)
-      return { year: y, week: w, hours, target }
-    })
+  // Semaines du mois en cours
+  const monthWeeks = useMemo(() => {
+    const monthStart = startOfMonth(now)
+    const monthEnd = endOfMonth(now)
+    const seen = new Set<string>()
+    const weeks: { year: number; week: number; hours: number; target: number }[] = []
+    const cursor = new Date(monthStart)
+    while (cursor <= monthEnd) {
+      const y = getIsoWeekYear(cursor)
+      const w = getIsoWeek(cursor)
+      const key = `${y}-${w}`
+      if (!seen.has(key)) {
+        seen.add(key)
+        const mon = getIsoWeekMonday(y, w)
+        const fri = new Date(mon)
+        fri.setDate(mon.getDate() + 4)
+        const monKey = toDateKey(mon)
+        const friKey = toDateKey(fri)
+        const weekEntries = entries.filter((e) => e.workDate >= monKey && e.workDate <= friKey)
+        weeks.push({ year: y, week: w, hours: sumHours(weekEntries), target: weekTargetHours(y, w) })
+      }
+      cursor.setDate(cursor.getDate() + 7)
+    }
+    return weeks
   }, [entries])
 
   // Heures par projet (semaine courante)
@@ -159,14 +170,14 @@ export function DashboardPage({ user }: DashboardPageProps) {
   return (
     <ScrollArea className="min-h-0 flex-1">
     <div className="flex flex-col gap-3 p-4">
-      {/* Row 1 — 4 KPI */}
+      {/* Row 1 → 4 KPI */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-2">
         <KpiCard
           label="Heures cumulées (année)"
           value={loading ? '' : formatHoursLabel(totalHours)}
 
           progress={Math.min(100, (totalHours / Math.max(isoWeek * currentTarget, 1)) * 100)}
-          colorClass="[&>div]:bg-blue-500"
+          indicatorClassName="bg-blue-500"
           hint={`Objectif indicatif ${isoWeek * currentTarget}h`}
           loading={loading}
           icon={Clock}
@@ -176,7 +187,7 @@ export function DashboardPage({ user }: DashboardPageProps) {
           value={loading ? '' : completedWeeks}
           suffix={`/ ${totalWeeks}`}
           progress={totalWeeks > 0 ? (completedWeeks / totalWeeks) * 100 : 0}
-          colorClass="[&>div]:bg-emerald-500"
+          indicatorClassName="bg-emerald-500"
           hint={`Courante : S${isoWeek}`}
           loading={loading}
           icon={CheckCircle2}
@@ -194,30 +205,30 @@ export function DashboardPage({ user }: DashboardPageProps) {
           value={loading ? '' : remainingCP}
           suffix={`j / ${leaveQuota}j`}
           progress={leaveQuota > 0 ? (approvedCPDays / leaveQuota) * 100 : 0}
-          colorClass="[&>div]:bg-violet-500"
+          indicatorClassName="bg-violet-500"
           hint={`${approvedCPDays}j utilisés`}
           loading={loading}
           icon={Palmtree}
         />
       </div>
 
-      {/* Row 2 — Chart */}
+      {/* Row 2 → Chart */}
       {loading ? (
         <Skeleton className="h-50 w-full rounded-xl" />
       ) : (
         <ChartAreaInteractive entries={entries} weeksBack={8} />
       )}
 
-      {/* Row 3 — Aperçu hebdomadaire + Demandes en attente */}
+      {/* Row 3 → Aperçu hebdomadaire + Demandes en attente */}
       <div className="grid grid-cols-1 items-stretch lg:grid-cols-2 gap-2">
         {/* Aperçu hebdomadaire */}
         <Card
-          className="group cursor-pointer gap-0 border border-border py-0 shadow-sm transition-colors hover:border-primary/40"
+          className="group cursor-pointer gap-0 py-0 transition-colors hover:border-primary/40"
           onClick={() => navigate({ to: '/pointage' })}
         >
           <CardContent className="p-4 space-y-2">
             <div className="flex items-center justify-between gap-2">
-              <span className="app-kpi-label">Aperçu hebdomadaire</span>
+              <span className="text-xs font-medium text-muted-foreground">Aperçu du mois</span>
               <ChevronRight className="size-3.5 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
             </div>
             <div className="space-y-1.5">
@@ -226,15 +237,15 @@ export function DashboardPage({ user }: DashboardPageProps) {
                   <Skeleton key={i} className="h-6 w-full" />
                 ))
               ) : (
-                last4Weeks.map((w) => {
+                monthWeeks.map((w) => {
                   const pct = w.target > 0 ? (w.hours / w.target) * 100 : 0
                   const isComplete = w.hours >= w.target
                   return (
                     <div key={`${w.year}-${w.week}`} className="flex items-center gap-2">
-                      <span className="w-8 shrink-0 text-xs font-medium tabular-nums text-foreground">
+                      <span className="w-8 shrink-0 font-medium tabular-nums text-foreground">
                         S{w.week}
                       </span>
-                      <span className="w-18 shrink-0 text-[11px] tabular-nums text-muted-foreground">
+                      <span className="w-18 shrink-0 text-xs tabular-nums text-muted-foreground">
                         {formatHoursLabel(w.hours)}/{w.target}h
                       </span>
                       <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-muted">
@@ -261,12 +272,12 @@ export function DashboardPage({ user }: DashboardPageProps) {
 
         {/* Demandes en attente */}
         <Card
-          className="group cursor-pointer gap-0 border border-border py-0 shadow-sm transition-colors hover:border-primary/40"
+          className="group cursor-pointer gap-0 py-0 transition-colors hover:border-primary/40"
           onClick={() => navigate({ to: '/absences' })}
         >
           <CardContent className="p-4 space-y-2">
             <div className="flex items-center justify-between gap-2">
-              <span className="app-kpi-label">Demandes en attente</span>
+              <span className="text-xs font-medium text-muted-foreground">Demandes en attente</span>
               <ChevronRight className="size-3.5 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
             </div>
             {loading ? (
@@ -281,19 +292,19 @@ export function DashboardPage({ user }: DashboardPageProps) {
                       key={a.id}
                       className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1 px-2 py-1.5"
                     >
-                      <span className="text-xs font-medium text-foreground">
+                      <span className="font-medium text-foreground">
                         {ABSENCE_TYPES[a.type]}
                       </span>
-                      <span className="text-[11px] tabular-nums text-muted-foreground">
-                        {format(parseDateKey(a.startDate), 'd MMM', { locale: fr })} →{' '}
-                        {format(parseDateKey(a.endDate), 'd MMM', { locale: fr })} ·{' '}
-                        {countWorkdays(parseDateKey(a.startDate), parseDateKey(a.endDate))}j
+                      <span className="text-xs tabular-nums text-muted-foreground">
+                        {format(parseDateKey(a.startDate), 'd MMM', { locale: fr })} ?{' '}
+                        {format(parseDateKey(a.endDate), 'd MMM', { locale: fr })} -{' '}
+                        {countWorkdays(parseDateKey(a.startDate), parseDateKey(a.endDate)) * (a.halfDay ? 0.5 : 1)}j
                       </span>
                     </div>
                   ))}
                 </div>
                 {pendingAbsences.length > 4 && (
-                  <p className="text-center text-[11px] text-muted-foreground">
+                  <p className="text-center text-xs text-muted-foreground">
                     +{pendingAbsences.length - 4}
                   </p>
                 )}
@@ -305,12 +316,12 @@ export function DashboardPage({ user }: DashboardPageProps) {
         </Card>
       </div>
 
-      {/* Row 4 — Heures par projet + Actions rapides */}
+      {/* Row 4 - Heures par projet + Actions rapides */}
       <div className="grid grid-cols-1 items-stretch lg:grid-cols-2 gap-2">
         {/* Heures par projet */}
-        <Card className="gap-0 border border-border py-0 shadow-sm">
+        <Card className="gap-0 py-0">
           <CardContent className="p-4 space-y-2">
-            <span className="app-kpi-label">Heures par projet — semaine courante</span>
+            <span className="text-xs font-medium text-muted-foreground">Heures par projet — semaine courante</span>
             {loading ? (
               Array.from({ length: 3 }).map((_, i) => (
                 <Skeleton key={i} className="h-5 w-full" />
@@ -321,7 +332,7 @@ export function DashboardPage({ user }: DashboardPageProps) {
               <>
                 {hoursByProject.map(({ project, hours }) => (
                   <div key={project.id}>
-                    <div className="mb-1 flex justify-between gap-2 text-xs">
+                    <div className="mb-1 flex justify-between gap-2">
                       <span className="flex min-w-0 items-center gap-1.5 truncate text-foreground">
                         <span
                           className="h-1.5 w-1.5 shrink-0 rounded-sm"
@@ -338,7 +349,7 @@ export function DashboardPage({ user }: DashboardPageProps) {
                   </div>
                 ))}
                 <Separator className="my-1" />
-                <div className="flex items-center justify-between text-xs font-medium">
+                <div className="flex items-center justify-between font-medium">
                   <span className="text-foreground">Total</span>
                   <span className="tabular-nums text-foreground">{formatHoursLabel(currentWeekHours)}</span>
                 </div>
@@ -348,9 +359,9 @@ export function DashboardPage({ user }: DashboardPageProps) {
         </Card>
 
         {/* Actions rapides */}
-        <Card className="gap-0 border border-border py-0 shadow-sm">
+        <Card className="gap-0 py-0">
           <CardContent className="p-4 space-y-2">
-            <span className="app-kpi-label">Actions rapides</span>
+            <span className="text-xs font-medium text-muted-foreground">Actions rapides</span>
             <Button
               variant="outline"
               className="h-auto min-h-0 w-full justify-start gap-2 border-border px-2 py-2 text-left font-normal hover:bg-muted/60"
@@ -359,7 +370,7 @@ export function DashboardPage({ user }: DashboardPageProps) {
               <span className="flex size-8 shrink-0 items-center justify-center rounded-md bg-muted">
                 <Clock className="size-3.5 text-foreground" />
               </span>
-              <span className="min-w-0 flex-1 text-xs font-medium text-foreground">
+              <span className="min-w-0 flex-1 font-medium text-foreground">
                 Saisir mes heures
               </span>
               <ChevronRight className="size-3.5 shrink-0 text-muted-foreground" />
@@ -372,7 +383,7 @@ export function DashboardPage({ user }: DashboardPageProps) {
               <span className="flex size-8 shrink-0 items-center justify-center rounded-md bg-muted">
                 <CalendarCheck className="size-3.5 text-foreground" />
               </span>
-              <span className="min-w-0 flex-1 text-xs font-medium text-foreground">
+              <span className="min-w-0 flex-1 font-medium text-foreground">
                 Nouvelle absence
               </span>
               <ChevronRight className="size-3.5 shrink-0 text-muted-foreground" />

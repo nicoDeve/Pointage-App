@@ -22,7 +22,7 @@ interface AbsenceTypeBadgeProps {
 
 export function AbsenceTypeBadge({ type, className }: AbsenceTypeBadgeProps) {
   return (
-    <Badge className={cn(ABSENCE_TYPE_BADGE_CSS[type], 'text-xs font-normal', className)}>
+    <Badge className={cn(ABSENCE_TYPE_BADGE_CSS[type], 'font-normal', className)}>
       {ABSENCE_TYPES[type]}
     </Badge>
   )
@@ -43,7 +43,7 @@ const ABSENCE_STATUS_BADGE_CSS: Record<AbsenceStatus, string> = {
 
 export function AbsenceStatusBadge({ status, className }: AbsenceStatusBadgeProps) {
   return (
-    <Badge className={cn(ABSENCE_STATUS_BADGE_CSS[status], 'text-xs font-normal', className)}>
+    <Badge className={cn(ABSENCE_STATUS_BADGE_CSS[status], 'font-normal', className)}>
       {ABSENCE_STATUSES[status]}
     </Badge>
   )
@@ -64,7 +64,7 @@ export function WeekHoursStatusBadge({ hours, target, className }: WeekHoursStat
       : 'border-border text-muted-foreground'
   const label = ratio >= 1 ? 'Complet' : ratio > 0 ? `${Math.round(ratio * 100)}%` : '—'
   return (
-    <Badge variant="outline" className={cn(css, 'text-xs font-normal', className)}>
+    <Badge variant="outline" className={cn(css, 'font-normal', className)}>
       {label}
     </Badge>
   )
@@ -99,7 +99,7 @@ interface CompletionStatusBadgeProps {
 
 export function CompletionStatusBadge({ status, label, className }: CompletionStatusBadgeProps) {
   return (
-    <Badge className={cn(COMPLETION_STATUS_CSS[status], 'text-xs font-normal', className)}>
+    <Badge className={cn(COMPLETION_STATUS_CSS[status], 'font-normal', className)}>
       {label ?? COMPLETION_STATUS_LABEL[status]}
     </Badge>
   )
@@ -134,7 +134,7 @@ interface PeriodStatusBadgeProps {
 
 export function PeriodStatusBadge({ status, label, className }: PeriodStatusBadgeProps) {
   return (
-    <Badge className={cn(PERIOD_STATUS_CSS[status], 'text-xs font-normal', className)}>
+    <Badge className={cn(PERIOD_STATUS_CSS[status], 'font-normal', className)}>
       {label ?? PERIOD_STATUS_LABEL[status]}
     </Badge>
   )

@@ -4,10 +4,10 @@ import { eq } from 'drizzle-orm'
 
 async function main() {
   const allUsers = await db
-    .select({ id: users.id, firstName: users.firstName, lastName: users.lastName, roles: users.roles })
+    .select({ id: users.id, name: users.name, roles: users.roles })
     .from(users)
   console.log('=== USERS ===')
-  allUsers.forEach((u) => console.log(u.id.slice(0, 8), u.firstName, u.lastName, u.roles))
+  allUsers.forEach((u) => console.log(u.id.slice(0, 8), u.name, u.roles))
 
   console.log('\n=== ALL TIME ENTRIES ===')
   const entries = await db

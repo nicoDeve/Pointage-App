@@ -48,6 +48,9 @@ export const HOURS_PER_WORKDAY = 7
 
 export const DEFAULT_WEEKLY_TARGET = 35
 
+/** Quota annuel de jours de télétravail */
+export const TELETRAVAIL_QUOTA = 10
+
 /** Only .5 increments allowed (0.5, 1, 1.5 … 7) */
 export const HOURS_STEP = 0.5
 

@@ -8,6 +8,7 @@ import {
   createProjectSchema,
 } from '~/lib/validators/projects'
 import { forbidden, safeHandler } from '~/lib/errors'
+import { hasRole } from '@repo/shared'
 
 export const Route = createFileRoute('/api/projects/')({
   server: {
@@ -41,7 +42,7 @@ export const Route = createFileRoute('/api/projects/')({
 
         POST: safeHandler(async ({ request, context }) => {
           const { user } = context as AuthContext
-          if (!user.roles.includes('admin')) {
+          if (!hasRole(user.roles, ['admin'])) {
             return forbidden()
           }
 

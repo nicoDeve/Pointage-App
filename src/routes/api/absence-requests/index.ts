@@ -5,6 +5,9 @@ import { absenceRequests } from '~/db/schema'
 import { authMiddleware, type AuthContext } from '~/middleware/auth'
 import { safeHandler } from '~/lib/errors'
 import {
+  hasRole, SUPPORT_PAGE_ROLES, ENTRY_CREATION_ROLES,
+} from '@repo/shared'
+import {
   listAbsenceRequestsQuerySchema,
   createAbsenceRequestSchema,
 } from '~/lib/validators/absence-requests'
@@ -32,9 +35,9 @@ export const Route = createFileRoute('/api/absence-requests/')({
 
           const conditions: SQL[] = []
 
-          const isAdmin = user.roles.includes('admin')
-          const isValidateur = user.roles.includes('validateur')
-          const isSupport = user.roles.includes('support')
+          const isAdmin = hasRole(user.roles, ['admin'])
+          const isValidateur = hasRole(user.roles, ['validateur'])
+          const isSupport = hasRole(user.roles, SUPPORT_PAGE_ROLES)
 
           if (isAdmin || isSupport) {
             if (userId) conditions.push(eq(absenceRequests.userId, userId))
@@ -76,10 +79,8 @@ export const Route = createFileRoute('/api/absence-requests/')({
 
         POST: safeHandler(async ({ request, context }) => {
           const { user } = context as AuthContext
-          const hasRole = user.roles.some((r: string) =>
-            ['collaborateur', 'admin'].includes(r),
-          )
-          if (!hasRole) {
+          const canCreate = hasRole(user.roles, ENTRY_CREATION_ROLES)
+          if (!canCreate) {
             return Response.json({ error: 'Forbidden' }, { status: 403 })
           }
 
@@ -93,52 +94,52 @@ export const Route = createFileRoute('/api/absence-requests/')({
           }
 
           // Wrap overlap check + insert in a transaction to prevent race conditions
-          const result = await db.transaction(async (tx) => {
-            const overlapping = await tx
-              .select({ id: absenceRequests.id, halfDay: absenceRequests.halfDay })
-              .from(absenceRequests)
-              .where(
-                and(
-                  eq(absenceRequests.userId, user.id),
-                  ne(absenceRequests.status, 'refusee'),
-                  lte(absenceRequests.startDate, parsed.data.endDate),
-                  gte(absenceRequests.endDate, parsed.data.startDate),
-                ),
-              )
+          try {
+            const row = await db.transaction(async (tx) => {
+              const overlapping = await tx
+                .select({ id: absenceRequests.id, halfDay: absenceRequests.halfDay })
+                .from(absenceRequests)
+                .where(
+                  and(
+                    eq(absenceRequests.userId, user.id),
+                    ne(absenceRequests.status, 'refusee'),
+                    lte(absenceRequests.startDate, parsed.data.endDate),
+                    gte(absenceRequests.endDate, parsed.data.startDate),
+                  ),
+                )
 
-            if (overlapping.length > 0) {
-              const allExistingHalf = overlapping.every((r) => r.halfDay)
-              const newIsHalf = parsed.data.halfDay ?? false
-              if (!allExistingHalf || !newIsHalf) {
-                throw new Error('OVERLAP')
+              if (overlapping.length > 0) {
+                const allExistingHalf = overlapping.every((r) => r.halfDay)
+                const newIsHalf = parsed.data.halfDay ?? false
+                if (!allExistingHalf || !newIsHalf) {
+                  throw new Error('OVERLAP')
+                }
               }
-            }
 
-            const [row] = await tx
-              .insert(absenceRequests)
-              .values({
-                userId: user.id,
-                type: parsed.data.type,
-                startDate: parsed.data.startDate,
-                endDate: parsed.data.endDate,
-                halfDay: parsed.data.halfDay ?? false,
-                comment: parsed.data.comment,
-              })
-              .returning()
-            return row
-          }).catch((err: Error) => err)
+              const [created] = await tx
+                .insert(absenceRequests)
+                .values({
+                  userId: user.id,
+                  type: parsed.data.type,
+                  startDate: parsed.data.startDate,
+                  endDate: parsed.data.endDate,
+                  halfDay: parsed.data.halfDay ?? false,
+                  comment: parsed.data.comment,
+                })
+                .returning()
+              return created
+            })
 
-          if (result instanceof Error) {
-            if (result.message === 'OVERLAP') {
+            return Response.json(row, { status: 201 })
+          } catch (err) {
+            if (err instanceof Error && err.message === 'OVERLAP') {
               return Response.json(
                 { error: 'Une demande d\u2019absence existe déjà sur cette période' },
                 { status: 409 },
               )
             }
-            throw result
+            throw err
           }
-
-          return Response.json(result, { status: 201 })
         }),
       }),
   },

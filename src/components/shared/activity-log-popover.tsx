@@ -24,9 +24,9 @@ export function ActivityLogPopover() {
       </PopoverTrigger>
       <PopoverContent align="end" className="w-80 p-0">
         <div className="px-4 py-3 border-b border-border">
-          <p className="text-sm font-semibold">Activité récente</p>
+          <p className="font-semibold">Activité récente</p>
         </div>
-        <div className="px-4 py-6 text-center text-sm text-muted-foreground">
+        <div className="px-4 py-6 text-center text-muted-foreground">
           Aucune activité récente
         </div>
       </PopoverContent>

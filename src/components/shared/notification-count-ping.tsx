@@ -34,7 +34,7 @@ export function NotificationCountPing({
       />
       <span
         className={cn(
-          'relative z-10 flex items-center justify-center rounded-full text-[10px] font-medium leading-none text-white tabular-nums',
+          'relative z-10 flex items-center justify-center rounded-full text-xs font-medium leading-none text-white tabular-nums',
           count > 9 ? 'h-5 min-w-5 px-1' : 'h-5 w-5',
           variant === 'destructive' ? 'bg-destructive' : 'bg-primary',
         )}

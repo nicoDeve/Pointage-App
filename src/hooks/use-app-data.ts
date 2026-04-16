@@ -19,6 +19,10 @@ export function useUsers() {
   return useAppData().users
 }
 
+export function useAppLoading() {
+  return useAppData().loading
+}
+
 export function usePendingAbsenceCount() {
   return useAppData().pendingAbsenceCount
 }

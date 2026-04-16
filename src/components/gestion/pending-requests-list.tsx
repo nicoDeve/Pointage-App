@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import { format } from 'date-fns'
 import { fr } from 'date-fns/locale'
-import { Check, ChevronRight, Eye, X } from 'lucide-react'
+import { Check, Eye, X } from 'lucide-react'
 import type { User, AbsenceRequest } from '@repo/shared'
 import { countWorkdays, parseDateKey } from '@repo/shared'
 import { getUserName, getUserInitials } from '~/lib/utils'
@@ -20,6 +20,7 @@ interface PendingRequestsListProps {
   requests: AbsenceRequest[]
   usersById: Record<string, User>
   currentUserId: string
+  isAdmin: boolean
   onApprove: (id: string) => void
   onReject: (request: AbsenceRequest) => void
   onViewDetail: (request: AbsenceRequest) => void
@@ -29,6 +30,7 @@ export function PendingRequestsList({
   requests,
   usersById,
   currentUserId,
+  isAdmin,
   onApprove,
   onReject,
   onViewDetail,
@@ -46,7 +48,7 @@ export function PendingRequestsList({
   if (groups.length === 0) {
     return (
       <div className="flex items-center justify-center py-12">
-        <p className="text-body-muted">Aucune demande en attente</p>
+        <p className="text-muted-foreground">Aucune demande en attente</p>
       </div>
     )
   }
@@ -55,14 +57,14 @@ export function PendingRequestsList({
     <div className="space-y-6">
       {groups.map(([pole, groupRequests]) => (
         <div key={pole}>
-          <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+          <p className="mb-1.5 text-xs text-muted-foreground font-semibold uppercase tracking-wider">
             {pole}{' '}
             <span className="font-normal normal-case tracking-normal">({groupRequests.length})</span>
           </p>
           <div className="divide-y divide-border rounded-lg border border-border overflow-hidden">
             {groupRequests.map((r) => {
-              const isSelf = r.userId === currentUserId
-              const days = countWorkdays(parseDateKey(r.startDate), parseDateKey(r.endDate))
+              const isSelf = r.userId === currentUserId && !isAdmin
+              const days = countWorkdays(parseDateKey(r.startDate), parseDateKey(r.endDate)) * (r.halfDay ? 0.5 : 1)
               const u = usersById[r.userId]
               return (
                 <ContextMenu key={r.id}>
@@ -73,10 +75,10 @@ export function PendingRequestsList({
                       </div>
                       <div className="flex-1 min-w-0 space-y-0.5">
                         <div className="flex items-center gap-1.5">
-                          <span className="text-sm font-medium">{getUserName(u)}</span>
+                          <span className="font-medium">{getUserName(u)}</span>
                           <AbsenceTypeBadge type={r.type} />
                         </div>
-                        <p className="text-[11px] text-muted-foreground">
+                        <p className="text-xs text-muted-foreground">
                           {format(parseDateKey(r.startDate), 'd MMM', { locale: fr })} →{' '}
                           {format(parseDateKey(r.endDate), 'd MMM yyyy', { locale: fr })} · {days}j ouvré{days > 1 ? 's' : ''}
                         </p>
@@ -97,7 +99,7 @@ export function PendingRequestsList({
                           <Button
                             variant="outline"
                             size="icon"
-                            className="size-7 text-green-600 hover:text-green-700 hover:bg-green-50 dark:hover:bg-green-950/30"
+                            className="size-7 border-green-500/60 hover:border-green-500"
                             onClick={() => onApprove(r.id)}
                           >
                             <Check className="size-3.5" />
@@ -111,7 +113,6 @@ export function PendingRequestsList({
                         >
                           <X className="size-3.5" />
                         </Button>
-                        <ChevronRight className="size-4 text-muted-foreground opacity-0 transition-all group-hover:opacity-100 group-hover:translate-x-0.5" />
                       </div>
                     </div>
                   </ContextMenuTrigger>

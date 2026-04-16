@@ -73,9 +73,15 @@ export function AbsenceFormPanel({ open, onClose, userId, existingAbsences = [],
     [],
   )
 
+  const today = useMemo(() => {
+    const d = new Date()
+    d.setHours(0, 0, 0, 0)
+    return d
+  }, [])
+
   const isDisabledDate = useCallback(
-    (date: Date) => isWeeklyOff(date) || isPublicHoliday(toDateKey(date)) || bookedDateKeys.has(toDateKey(date)),
-    [bookedDateKeys],
+    (date: Date) => date < today || isWeeklyOff(date) || isPublicHoliday(toDateKey(date)) || bookedDateKeys.has(toDateKey(date)),
+    [bookedDateKeys, today],
   )
 
   const isValid = !!range.from && workdayCount > 0
@@ -138,9 +144,9 @@ export function AbsenceFormPanel({ open, onClose, userId, existingAbsences = [],
       <div className="space-y-4 pb-2">
         {/* Type */}
         <div className="space-y-1.5">
-          <Label className="text-label">Type d&apos;absence</Label>
+          <Label className="text-xs text-muted-foreground">Type d&apos;absence</Label>
           <Select value={type} onValueChange={(v) => setType(v as AbsenceType)}>
-            <SelectTrigger className="h-9">
+            <SelectTrigger className="h-9 w-full">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -162,20 +168,20 @@ export function AbsenceFormPanel({ open, onClose, userId, existingAbsences = [],
         {/* Dates */}
         <div className="space-y-2">
           <div className="flex items-center gap-1.5">
-            <Label className="text-label">Période</Label>
+            <Label className="text-xs text-muted-foreground">Période</Label>
             <InlineHelp>
               Sélectionnez la plage de dates. Les week-ends et jours fériés
               sont automatiquement exclus du décompte.
               <div className="flex flex-wrap items-center gap-x-3 gap-y-1 pt-0.5">
-            <span className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+            <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
               <span className="size-1.5 rounded-full shrink-0 bg-emerald-500" />
               Approuvé
             </span>
-            <span className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+            <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
               <span className="size-1.5 rounded-full shrink-0 bg-amber-400" />
               En attente
             </span>
-            <span className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+            <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
               <span className="size-1.5 rounded-full shrink-0 bg-orange-400" />
               Férié
             </span>
@@ -201,7 +207,7 @@ export function AbsenceFormPanel({ open, onClose, userId, existingAbsences = [],
               onCheckedChange={(c) => setHalfDay(c === true)}
               id="half-day"
             />
-            <label htmlFor="half-day" className="text-sm cursor-pointer">
+            <label htmlFor="half-day" className="cursor-pointer">
               Demi-journée
             </label>
             <InlineHelp>
@@ -215,24 +221,24 @@ export function AbsenceFormPanel({ open, onClose, userId, existingAbsences = [],
         {range.from && (
           <div className="app-summary-box space-y-1.5">
             <div className="app-summary-row">
-              <span className="app-summary-label">Jours ouvrés</span>
-              <span className="app-summary-value">{workdayCount}j</span>
+              <span className="text-xs text-muted-foreground">Jours ouvrés</span>
+              <span className="font-semibold tabular-nums">{workdayCount}j</span>
             </div>
             <div className="app-summary-row">
-              <span className="app-summary-label">Équivalent heures</span>
-              <span className="app-summary-value-muted">{hoursEquivalent}h</span>
+              <span className="text-xs text-muted-foreground">Équivalent heures</span>
+              <span className="font-semibold tabular-nums text-muted-foreground">{hoursEquivalent}h</span>
             </div>
           </div>
         )}
 
         {/* Motif */}
         <div className="space-y-1.5">
-          <Label className="text-label">Motif (optionnel)</Label>
+          <Label className="text-xs text-muted-foreground">Motif (optionnel)</Label>
           <Textarea
             value={comment}
             onChange={(e) => setComment(e.target.value)}
             placeholder="Précisez le motif de votre demande…"
-            className="min-h-22 resize-none text-xs"
+            className="h-22 min-h-0 resize-none overflow-y-auto wrap-anywhere field-sizing-fixed"
           />
         </div>
 

@@ -93,5 +93,3 @@ export function getMonthStats(
   }).length
   return { complete, total: users.length }
 }
-
-export const PROJECT_COLORS = ['#6366f1', '#0ea5e9', '#8b5cf6', '#f59e0b', '#10b981']

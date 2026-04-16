@@ -6,6 +6,7 @@ import {
   SheetTitle,
   SheetDescription,
 } from '~/components/ui/sheet'
+import { ScrollArea } from '~/components/ui/scroll-area'
 import { cn } from '~/lib/utils'
 
 type PanelSize = 'narrow' | 'default' | 'wide'
@@ -48,21 +49,21 @@ export function AppSidePanel({
     <Sheet open={open} onOpenChange={(v) => !v && onClose()}>
       <SheetContent
         className={cn(
-          'flex w-full flex-col gap-0 border-l p-0 overflow-hidden',
+          'flex w-full min-w-0 flex-col gap-0 border-l p-0 overflow-hidden',
           SIZE_MAP[resolvedSize],
           className,
         )}
       >
         {banner && <div>{banner}</div>}
         <SheetHeader className="shrink-0 space-y-0 border-b border-border px-4 py-3 text-left">
-          <SheetTitle className="text-sm font-semibold">{title}</SheetTitle>
+          <SheetTitle>{title}</SheetTitle>
           {description && (
-            <SheetDescription className="text-[11px] leading-snug text-muted-foreground">{description}</SheetDescription>
+            <SheetDescription className="text-xs text-muted-foreground leading-snug">{description}</SheetDescription>
           )}
         </SheetHeader>
-        <div className="min-h-0 min-w-0 flex-1 overflow-y-auto">
-          <div className="px-3 py-2">{children}</div>
-        </div>
+        <ScrollArea className="min-h-0 min-w-0 flex-1 [&>[data-radix-scroll-area-viewport]>div]:block! [&>[data-radix-scroll-area-viewport]>div]:min-w-0!">
+          <div className="min-w-0 overflow-hidden px-3 py-2">{children}</div>
+        </ScrollArea>
         {footer && (
           <div className="shrink-0 border-t border-border p-3">{footer}</div>
         )}

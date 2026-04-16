@@ -23,6 +23,7 @@ export function conflict(message = 'Conflict') {
  * Re-throws Response objects (used by middleware for control flow),
  * catches everything else and returns a 500 JSON error.
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- generic wrapper accepts any handler shape
 export function safeHandler<T extends (...args: any[]) => Promise<Response>>(
   fn: T,
 ): T {

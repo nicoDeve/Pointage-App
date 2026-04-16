@@ -3,6 +3,7 @@ import { fr } from 'date-fns/locale'
 import { Moon, Sun, LogOut, PanelLeft, PanelLeftClose, CalendarDays } from 'lucide-react'
 import { useRouterState } from '@tanstack/react-router'
 import type { User } from '@repo/shared'
+import { DEFAULT_POSTE_LABEL } from '@repo/shared'
 import { useTheme } from '~/lib/theme'
 import { getUserInitials } from '~/lib/utils'
 import { Button } from '~/components/ui/button'
@@ -73,12 +74,12 @@ export function AppHeader({ user, onLogout, sidebarCollapsed, onToggleSidebar }:
                   {i < crumbs.length - 1 ? (
                     <BreadcrumbLink
                       href={crumb.href ?? '#'}
-                      className="text-xs text-muted-foreground hover:text-foreground"
+                      className="text-muted-foreground hover:text-foreground"
                     >
                       {crumb.label}
                     </BreadcrumbLink>
                   ) : (
-                    <BreadcrumbPage className="text-xs font-medium text-foreground">
+                    <BreadcrumbPage className="font-medium text-foreground">
                       {crumb.label}
                     </BreadcrumbPage>
                   )}
@@ -93,7 +94,7 @@ export function AppHeader({ user, onLogout, sidebarCollapsed, onToggleSidebar }:
       <div className="flex items-center gap-2 shrink-0">
         <div className="hidden sm:flex items-center gap-1.5 text-foreground">
           <CalendarDays className="h-4 w-4 text-muted-foreground" />
-          <span className="text-sm font-medium">{displayDate}</span>
+          <span className="font-medium">{displayDate}</span>
         </div>
 
         <ActivityLogPopover />
@@ -121,8 +122,8 @@ export function AppHeader({ user, onLogout, sidebarCollapsed, onToggleSidebar }:
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56">
             <div className="px-2 py-1.5">
-              <p className="text-sm font-medium truncate">{displayName}</p>
-              <p className="text-xs text-muted-foreground truncate">{user?.poste ?? 'Collaborateur'}</p>
+              <p className="font-medium truncate">{displayName}</p>
+              <p className="text-xs text-muted-foreground truncate">{user?.poste ?? DEFAULT_POSTE_LABEL}</p>
             </div>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={toggleTheme}>

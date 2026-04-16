@@ -21,7 +21,7 @@ export function AuthLayoutWrapper({ children }: AuthLayoutWrapperProps) {
   if (loading) {
     return (
       <div className="flex h-screen min-h-0 items-center justify-center bg-background">
-        <p className="text-body-muted animate-pulse">Chargement…</p>
+        <p className="text-muted-foreground animate-pulse">Chargement…</p>
       </div>
     )
   }
@@ -29,7 +29,7 @@ export function AuthLayoutWrapper({ children }: AuthLayoutWrapperProps) {
   if (!user) {
     return (
       <div className="flex h-screen min-h-0 items-center justify-center bg-background">
-        <p className="text-body-muted animate-pulse">Redirection…</p>
+        <p className="text-muted-foreground animate-pulse">Redirection…</p>
       </div>
     )
   }

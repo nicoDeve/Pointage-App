@@ -20,7 +20,7 @@ export function JournalTab({ requests, usersById }: JournalTabProps) {
   if (sorted.length === 0) {
     return (
       <div className="flex items-center justify-center py-12">
-        <p className="text-body-muted">Aucune entrée dans le journal.</p>
+        <p className="text-muted-foreground">Aucune entrée dans le journal.</p>
       </div>
     )
   }
@@ -37,11 +37,11 @@ export function JournalTab({ requests, usersById }: JournalTabProps) {
             </div>
             <div className="flex-1 min-w-0 space-y-0.5">
               <div className="flex items-center gap-1.5">
-                <span className="text-sm font-medium">{getUserName(u)}</span>
+                <span className="font-medium">{getUserName(u)}</span>
                 <AbsenceTypeBadge type={r.type} />
                 <AbsenceStatusBadge status={r.status} />
               </div>
-              <p className="text-[11px] text-muted-foreground">
+              <p className="text-xs text-muted-foreground">
                 {format(parseDateKey(r.startDate), 'd MMM', { locale: fr })} →{' '}
                 {format(parseDateKey(r.endDate), 'd MMM yyyy', { locale: fr })} · {days}j
                 {r.processedAt && (

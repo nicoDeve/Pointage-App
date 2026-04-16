@@ -29,7 +29,7 @@ export function LoginPage() {
   if (user) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
-        <p className="text-body-muted animate-pulse">Redirection…</p>
+        <p className="text-muted-foreground animate-pulse">Redirection…</p>
       </div>
     )
   }
@@ -37,7 +37,7 @@ export function LoginPage() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
-        <p className="text-body-muted animate-pulse">Chargement…</p>
+        <p className="text-muted-foreground animate-pulse">Chargement…</p>
       </div>
     )
   }
@@ -46,7 +46,7 @@ export function LoginPage() {
     <div className="min-h-screen flex bg-background">
       <div className="hidden lg:flex lg:w-1/2 relative bg-zinc-950 flex-col justify-between p-12 overflow-hidden">
         <div
-          className="absolute inset-0 opacity-[0.04]"
+          className="absolute inset-0 opacity-5"
           style={{
             backgroundImage:
               'linear-gradient(to right, white 1px, transparent 1px), linear-gradient(to bottom, white 1px, transparent 1px)',
@@ -63,11 +63,11 @@ export function LoginPage() {
               <polyline points="9 22 9 12 15 12 15 22" />
             </svg>
           </div>
-          <span className="text-white/80 text-sm font-medium tracking-wide">Holis pointage</span>
+          <span className="text-white/80 font-medium tracking-wide">Holis pointage</span>
         </div>
 
         <div className="relative z-10">
-          <p className="text-white/40 text-sm leading-relaxed">
+          <p className="text-white/40 leading-relaxed">
             Votre espace de gestion du temps et des absences.
           </p>
         </div>
@@ -81,7 +81,7 @@ export function LoginPage() {
         <div className="w-full max-w-sm space-y-6">
           <div className="space-y-1.5">
             <h1 className="app-page-title">Connexion</h1>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-muted-foreground">
               Utilisez votre compte Microsoft professionnel pour accéder à l&apos;application.
             </p>
           </div>
@@ -89,7 +89,7 @@ export function LoginPage() {
           <Button
             onClick={handleLogin}
             variant="outline"
-            className="w-full h-11 gap-3 font-medium"
+            className="w-full h-11 gap-3"
             disabled={submitting}
           >
             {submitting ? 'Connexion…' : 'Continuer avec OAuth'}

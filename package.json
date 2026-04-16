@@ -16,7 +16,6 @@
     "test:api": "tsx scripts/test-api.ts"
   },
   "dependencies": {
-    "@tailwindcss/postcss": "^4.2.2",
     "@tailwindcss/vite": "^4.2.2",
     "@tanstack/react-router": "^1.168.10",
     "@tanstack/react-start": "^1.167.16",
@@ -30,7 +29,6 @@
     "lucide-react": "^1.7.0",
     "nitro": "3.0.260311-beta",
     "pg": "^8.20.0",
-    "postcss": "^8.5.8",
     "radix-ui": "^1.4.3",
     "react": "^19.2.4",
     "react-day-picker": "^9.14.0",

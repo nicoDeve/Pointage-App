@@ -5,6 +5,7 @@ import { absenceRequests } from '~/db/schema'
 import { authMiddleware, type AuthContext } from '~/middleware/auth'
 import { absenceRequestIdParamSchema } from '~/lib/validators/absence-requests'
 import { badRequest, notFound, forbidden, safeHandler } from '~/lib/errors'
+import { hasRole, ABSENCE_VIEW_ROLES } from '@repo/shared'
 
 export const Route = createFileRoute('/api/absence-requests/$id/')({
   server: {
@@ -21,9 +22,7 @@ export const Route = createFileRoute('/api/absence-requests/$id/')({
         if (!found) return notFound('Absence request not found')
 
         const isOwner = found.userId === user.id
-        const canView = user.roles.some((r: string) =>
-          ['admin', 'validateur', 'support'].includes(r),
-        )
+        const canView = hasRole(user.roles, ABSENCE_VIEW_ROLES)
         if (!isOwner && !canView) return forbidden()
 
         return Response.json(found)

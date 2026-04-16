@@ -5,6 +5,7 @@ import { timeEntries, absenceRequests } from '~/db/schema'
 import { authMiddleware, type AuthContext } from '~/middleware/auth'
 import { weekSummaryQuerySchema } from '~/lib/validators/time-entries'
 import { forbidden, safeHandler } from '~/lib/errors'
+import { hasRole, SUPPORT_PAGE_ROLES } from '@repo/shared'
 
 export const Route = createFileRoute('/api/time-entries/week-summary')({
   server: {
@@ -26,9 +27,7 @@ export const Route = createFileRoute('/api/time-entries/week-summary')({
         const { userId, weekStart } = parsed.data
 
         const isSelf = user.id === userId
-        const canViewOthers = user.roles.some((r: string) =>
-          ['admin', 'support'].includes(r),
-        )
+        const canViewOthers = hasRole(user.roles, SUPPORT_PAGE_ROLES)
         if (!isSelf && !canViewOthers) {
           return forbidden()
         }

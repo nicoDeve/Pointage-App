@@ -8,7 +8,9 @@ export default defineConfig({
   server: {
     port: 3000,
     host: true,
-    allowedHosts: ['host.docker.internal'],
+    ...(process.env.DOCKER_HOST && {
+      allowedHosts: ['host.docker.internal'],
+    }),
   },
   resolve: {
     tsconfigPaths: true,

@@ -1,17 +1,16 @@
 import { format, startOfMonth } from 'date-fns'
 import { useEffect, useRef } from 'react'
-import { fr } from 'date-fns/locale'
-import { ChevronUp, ChevronDown } from 'lucide-react'
 import type { User, TimeEntry, Project } from '@repo/shared'
 import { cn } from '~/lib/utils'
 import { PeriodStatusBadge, CompletionStatusBadge } from '~/components/shared/app-badges'
+import { ChevronUp, ChevronDown } from 'lucide-react'
 import { MonthlyView } from '~/components/support/monthly-view'
 import type { MonthData, DetailTab } from './support-types'
 import { getMonthStats } from './support-types'
 
 interface SupportMonthAccordionProps {
   monthDataList: MonthData[]
-  allEntries: import('@repo/shared').TimeEntry[]
+  allEntries: TimeEntry[]
   users: User[]
   projects: Project[]
   expandedMonthId: string | null
@@ -58,7 +57,7 @@ export function SupportMonthAccordion({
             className={cn(
               'overflow-hidden rounded-lg border border-border',
               md.isCurrent && 'ring-1 ring-blue-500/25',
-              !md.isCurrent && isPast && 'opacity-40 transition-opacity hover:opacity-[0.72]',
+              !md.isCurrent && isPast && 'opacity-40 transition-opacity hover:opacity-75',
             )}
           >
             {/* Month header */}
@@ -73,7 +72,7 @@ export function SupportMonthAccordion({
               onClick={() => onToggleMonth(md.id)}
             >
               <div className="flex items-center gap-4">
-                <span className="text-sm font-semibold capitalize text-foreground">{md.label}</span>
+                <span className="font-semibold capitalize text-foreground">{md.label}</span>
                 {md.isCurrent
                   ? allComplete
                     ? <CompletionStatusBadge status="complet" />
@@ -101,16 +100,14 @@ export function SupportMonthAccordion({
               </div>
             </button>
 
-            {/* Cross-table (expanded) */}
+            {/* Weekly table (expanded) */}
             {isExpanded && (
               <MonthlyView
                 month={md.month}
                 users={users}
-                entries={md.entries}
                 allEntries={allEntries}
                 projects={projects}
-                isCurrent={md.isCurrent}
-                onSelectUser={(userId, tab) => onSelectUser(userId, tab, md.month)}
+                onSelectUser={(userId, tab, month) => onSelectUser(userId, tab, month ?? md.month)}
                 onExportUserCsv={onExportUserCsv}
               />
             )}

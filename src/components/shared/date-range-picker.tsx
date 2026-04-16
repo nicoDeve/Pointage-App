@@ -55,18 +55,18 @@ export function DateRangePicker({
             type="button"
             variant="outline"
             className={cn(
-              'h-9 flex-1 justify-start gap-2 text-left font-normal text-sm',
+              'h-9 flex-1 justify-start gap-2 text-left font-normal',
               !value.from && 'text-muted-foreground',
             )}
           >
             {fromLabel}
           </Button>
-          <span className="text-muted-foreground/60 text-sm">—</span>
+          <span className="text-muted-foreground/60">—</span>
           <Button
             type="button"
             variant="outline"
             className={cn(
-              'h-9 flex-1 justify-start gap-2 text-left font-normal text-sm',
+              'h-9 flex-1 justify-start gap-2 text-left font-normal',
               !value.to && 'text-muted-foreground',
             )}
           >

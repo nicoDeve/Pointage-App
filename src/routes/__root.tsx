@@ -48,7 +48,7 @@ function RootComponent() {
         <TooltipProvider delayDuration={200}>
           <AuthProvider>
             <Outlet />
-            <Toaster position="bottom-right" richColors closeButton />
+            <Toaster position="top-right" richColors closeButton />
           </AuthProvider>
         </TooltipProvider>
       </ThemeProvider>

@@ -22,13 +22,12 @@ import {
 } from '~/components/ui/select'
 import { ToggleGroup, ToggleGroupItem } from '~/components/ui/toggle-group'
 
-type WeekHoursRange = 'all' | '8w' | '4w' | '1w'
+type WeekHoursRange = 'all' | '8w' | '4w'
 
 const RANGE_LABELS: Record<WeekHoursRange, string> = {
   all: 'Toutes les semaines',
   '8w': '8 dernières',
   '4w': '4 dernières',
-  '1w': 'Dernière semaine',
 }
 
 const chartConfig = {
@@ -90,11 +89,11 @@ export function ChartAreaInteractive({ entries, weeksBack = 8 }: ChartAreaIntera
   }, [points])
 
   const onRangeChange = (v: string) => {
-    if (v === 'all' || v === '8w' || v === '4w' || v === '1w') setTimeRange(v)
+    if (v === 'all' || v === '8w' || v === '4w') setTimeRange(v)
   }
 
   return (
-    <Card className="@container/card gap-0 border border-border py-0 shadow-sm">
+    <Card className="@container/card gap-0 py-0">
       <CardContent className={cn(uiDensity.cardPad, 'space-y-3')}>
         <div className="flex flex-col gap-2 @[767px]/card:flex-row @[767px]/card:items-start @[767px]/card:justify-between">
           <div className="min-w-0 space-y-1">
@@ -110,15 +109,14 @@ export function ChartAreaInteractive({ entries, weeksBack = 8 }: ChartAreaIntera
               value={timeRange}
               onValueChange={(v) => v && onRangeChange(v)}
               variant="outline"
-              className="hidden *:data-[slot=toggle-group-item]:!px-3 @[767px]/card:flex"
+              className="hidden @[767px]/card:flex"
             >
               <ToggleGroupItem value="all">Toutes</ToggleGroupItem>
               <ToggleGroupItem value="8w">8 sem.</ToggleGroupItem>
               <ToggleGroupItem value="4w">4 sem.</ToggleGroupItem>
-              <ToggleGroupItem value="1w">1 sem.</ToggleGroupItem>
             </ToggleGroup>
             <Select value={timeRange} onValueChange={onRangeChange}>
-              <SelectTrigger className="h-8 w-[min(100%,11rem)] text-xs @[767px]/card:hidden" aria-label="Période du graphique">
+              <SelectTrigger className="h-8 w-44 text-xs @[767px]/card:hidden" aria-label="Période du graphique">
                 <SelectValue placeholder={RANGE_LABELS.all} />
               </SelectTrigger>
               <SelectContent className="rounded-xl">
@@ -137,7 +135,7 @@ export function ChartAreaInteractive({ entries, weeksBack = 8 }: ChartAreaIntera
           ) : (
             <ChartContainer
               config={chartConfig}
-              className="aspect-auto h-[250px] w-full [&_.recharts-cartesian-axis-tick_text]:text-[10px]"
+              className="aspect-auto h-62.5 w-full [&_.recharts-cartesian-axis-tick_text]:text-[10px]"
             >
               <AreaChart data={points} margin={{ left: 2, right: 2, top: 4, bottom: 0 }}>
                 <defs>

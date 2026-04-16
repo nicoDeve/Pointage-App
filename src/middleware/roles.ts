@@ -1,15 +1,13 @@
 import { createMiddleware } from '@tanstack/react-start'
 import { authMiddleware } from './auth'
 import type { UserRole } from '~/db/schema'
+import { hasRole } from '@repo/shared'
 
-export function requireRoles(allowedRoles: UserRole[]) {
+export function requireRoles(allowedRoles: readonly UserRole[]) {
   return createMiddleware()
     .middleware([authMiddleware])
     .server(async ({ next, context }) => {
-      const hasRole = context.user.roles.some((r: string) =>
-        allowedRoles.includes(r as UserRole),
-      )
-      if (!hasRole) {
+      if (!hasRole(context.user.roles, allowedRoles)) {
         throw Response.json({ error: 'Forbidden' }, { status: 403 })
       }
       return next()
